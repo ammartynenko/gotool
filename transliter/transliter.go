@@ -12,18 +12,18 @@ import (
 	"path/filepath"
 )
 
-type transliter struct {
+type Transliter struct {
 	Validate []int
 	Replacer []int
 	InValid  []int
 }
 
-func newTransliter() *transliter {
+func newTransliter() *Transliter {
 	//	hex 65-122 A-z (допустимые )
 	//	hex 48-57 0-9 ( допустимые )
 	// 	hex 20 (зменяемые)
 	//	hex 123-126, 91-96, 58-64, 33-47 punctuations ( запретные )
-	n := new(transliter)
+	n := new(Transliter)
 	n.Validate = n.convert(65, 122)
 	n.InValid = n.convert(123, 126)
 
@@ -35,14 +35,14 @@ func newTransliter() *transliter {
 	//n.Replacer = append(n.Replacer, 20)
 	return n
 }
-func (s *transliter) convert(start, end int) []int {
+func (s *Transliter) convert(start, end int) []int {
 	stack := []int{}
 	for ; start <= end; start++ {
 		stack = append(stack, start)
 	}
 	return stack
 }
-func (s *transliter) correct(str string) string {
+func (s *Transliter) correct(str string) string {
 
 	var result []string
 	for _, x := range strings.Split(strings.TrimSpace(str), " ") {
@@ -52,7 +52,7 @@ func (s *transliter) correct(str string) string {
 	}
 	return strings.Join(result, " ")
 }
-func (s *transliter) preCorrect(str string) string {
+func (s *Transliter) preCorrect(str string) string {
 	str = s.correct(str)
 	var tmp []string
 	for _, sym := range str {
@@ -70,7 +70,7 @@ func (s *transliter) preCorrect(str string) string {
 	return s.correct(strings.Join(tmp, ""))
 }
 
-func (s *transliter) TransliterCyrFilename(filename string) string {
+func (s *Transliter) TransliterCyrFilename(filename string) string {
 	var extension = filepath.Ext(filename)
 	var name = filename[0:len(filename)-len(extension)]
 
@@ -90,7 +90,7 @@ func (s *transliter) TransliterCyrFilename(filename string) string {
 	}
 	return strings.Join([]string{strings.Join(result, ""), extension}, "")
 }
-func (s *transliter) TransliterCyr(str string) string {
+func (s *Transliter) TransliterCyr(str string) string {
 	str = s.preCorrect(str)
 	var result []string
 	for _, sym := range d.Unidecode(str) {
@@ -107,7 +107,7 @@ func (s *transliter) TransliterCyr(str string) string {
 	}
 	return strings.Join(result, "")
 }
-func (s *transliter) InSlice(str []int, target int) bool {
+func (s *Transliter) InSlice(str []int, target int) bool {
 	for x := 0; x < len(str); x++ {
 		if str[x] == target {
 			return true
@@ -115,7 +115,7 @@ func (s *transliter) InSlice(str []int, target int) bool {
 	}
 	return false
 }
-func (s *transliter) ShowAscii() {
+func (s *Transliter) ShowAscii() {
 	var i int
 	for i = 0; i < 255; i++ {
 		fmt.Printf("Dec: %3d Sym: %3c Hex: %3x\n", i, i, i)
