@@ -1,0 +1,9 @@
+!*.*
+.idea/
+_*
+__*
+*.db
+#*.sqlite3
+#*.sqlite
+config/config.json
+config/config.xml
