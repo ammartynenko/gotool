@@ -18,7 +18,7 @@ type Transliter struct {
 	InValid  []int
 }
 
-func newTransliter() *Transliter {
+func NewTransliter() *Transliter {
 	//	hex 65-122 A-z (допустимые )
 	//	hex 48-57 0-9 ( допустимые )
 	// 	hex 20 (зменяемые)
