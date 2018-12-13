@@ -7,3 +7,4 @@ __*
 #*.sqlite
 config/config.json
 config/config.xml
+.gitignore
