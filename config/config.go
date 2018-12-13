@@ -76,6 +76,8 @@ func (c *Conf) WriteDumpConfig(config interface{}) error {
 	return nil
 }
 
+
+
 //читаем дамп конфигурационного файла
 func (c *Conf) ReadDumpConfig(config interface{}) (error) {
 	f, err := os.Open(c.PathDumpconfig)
