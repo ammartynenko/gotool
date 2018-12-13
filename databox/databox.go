@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-type statelessData struct {
+type StatelessData struct {
 	sync.RWMutex
 	Data map[string]*Box
 }
@@ -17,23 +17,23 @@ type Box struct {
 	Data map[string]interface{}
 }
 
-func newstatelessData() *statelessData {
-	return &statelessData{
+func NewDataBox() *StatelessData {
+	return &StatelessData{
 		Data: make(map[string]*Box),
 	}
 }
-func (s *statelessData) NewBox(key string) *Box {
+func (s *StatelessData) NewBox(key string) *Box {
 	return &Box{
 		Key:  key,
 		Data: make(map[string]interface{}),
 	}
 }
-func (s *statelessData) Save(key string, value *Box) {
+func (s *StatelessData) Save(key string, value *Box) {
 	s.Lock()
 	defer s.Unlock()
 	s.Data[key] = value
 }
-func (s *statelessData) Get(key string) *map[string]interface{} {
+func (s *StatelessData) Get(key string) *map[string]interface{} {
 	s.Lock()
 	defer s.Unlock()
 	value, exists := s.Data[key]
