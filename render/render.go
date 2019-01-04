@@ -235,6 +235,24 @@ func (s *Render) RenderTxt(httpCode int, name string, w interface{}) (err error)
 
 	return
 }
+//---------------------------------------------------------------------------
+//  JSON
+//---------------------------------------------------------------------------
+//записывает json(byte format) в responseWriter
+func (s *Render) JSONB(httpcode int, b []byte, w http.ResponseWriter) (error) {
+	w.Header().Set(ContentType, ApplicationJavaScriptCharsetUTF8)
+	w.WriteHeader(httpcode)
+	w.Write(b)
+	return nil
+}
+//записывает json в responseWriter
+func (s *Render) JSON(code int, answer interface{}, w http.ResponseWriter) (err error) {
+	b, err := json.Marshal(answer)
+	if err != nil {
+		return err
+	}
+	return s.JSONB(code, b, w)
+}
 
 //отловка паники
 func (s *Render) catcherPanic() {
