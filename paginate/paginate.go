@@ -44,6 +44,11 @@ func NewPaginate(p *Params, resultList interface{}) (*Paginate, error) {
 		ppp.Log = log.New(*p.LogOut, prefix, log.Lshortfile|log.Ldate|log.Ltime)
 	}
 
+	//check debug
+	if p.DebugQuery {
+		p.DBS = p.DBS.Debug()
+	}
+
 	//get total records in table
 	ch := make(chan bool, 1)
 	go func() {
@@ -79,7 +84,7 @@ func NewPaginate(p *Params, resultList interface{}) (*Paginate, error) {
 		return nil, err
 	}
 	ppp.Records = resultList
-	
+
 	//return result
 	return &ppp, nil
 }
