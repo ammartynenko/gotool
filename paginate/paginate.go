@@ -54,6 +54,9 @@ func NewPaginate(p *Params) (*Paginate) {
 		p.DBS = p.DBS.Debug()
 	}
 
+	//add help
+	ppp.Help = &HTMLPaginate{}
+	
 	//return instance
 	return &ppp
 
