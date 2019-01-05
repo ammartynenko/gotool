@@ -10,6 +10,7 @@ import (
 	"io"
 	"math"
 	"errors"
+	"strconv"
 )
 
 const prefix = "[gotool][paginate]"
@@ -21,6 +22,12 @@ type Paginate struct {
 	Page      int
 	Log       *log.Logger
 	Params    *Params
+	Help      *HTMLPaginate
+}
+type HTMLPaginate struct {
+	Totalpage   string
+	Currentpage string
+	List        []string //количество элементов в пагинации
 }
 type Params struct {
 	Limit       int
@@ -57,7 +64,11 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (error) {
 	var (
 		offset = 0
 	)
-	p.Page = page
+	if page == 0 {
+		p.Page = 1
+	} else {
+		p.Page = page
+	}
 
 
 	//get total records in table
@@ -95,6 +106,19 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (error) {
 		return err
 	}
 	p.Records = listResult
+
+	//htmlhelp
+	if p.Page == 0 {
+		p.Help.Currentpage = "1"
+	} else {
+		p.Help.Currentpage = strconv.Itoa(p.Page)
+	}
+
+	p.Help.Totalpage = strconv.Itoa(p.TotalPage)
+	for i:=1; i <= p.TotalPage + 1; i++{
+		p.Help.List = append(p.Help.List, strconv.Itoa(i))
+	}
+
 
 	//return result
 	return nil
