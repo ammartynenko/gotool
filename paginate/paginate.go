@@ -31,7 +31,7 @@ type Params struct {
 	LogOut      *io.Writer
 }
 
-func NewPaginate(p *Params) (*Paginate, error) {
+func NewPaginate(p *Params) (*Paginate) {
 	var ppp Paginate
 	//logger
 	if p.LogOut == nil {
@@ -46,7 +46,7 @@ func NewPaginate(p *Params) (*Paginate, error) {
 	}
 
 	//return instance
-	return &ppp, nil
+	return &ppp
 
 }
 func (p *Paginate) MakePaginate(listResult interface{}) (error) {
