@@ -57,12 +57,12 @@ func (p *Paginate) MakePaginate(listResult interface{}) (error) {
 
 	//get total records in table
 	ch := make(chan bool, 1)
-	go func() {
-		if err := p.Params.DBS.Model(listResult).Count(&p.Count).Error; err != nil {
-			p.Log.Printf(err.Error())
+	go func(db *gorm.DB, count *int ) {
+		if err := db.Model(listResult).Count(count).Error; err != nil {
+			//p.Log.Printf(err.Error())
 		}
 		ch <- true
-	}()
+	}(p.Params.DBS, &p.Count)
 
 	//awaiting count
 	<-ch
