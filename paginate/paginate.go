@@ -11,6 +11,7 @@ import (
 	"math"
 	"errors"
 	"strconv"
+	"golang.org/x/tools/go/loader/testdata"
 )
 
 const prefix = "[gotool][paginate]"
@@ -27,6 +28,8 @@ type Paginate struct {
 type HTMLPaginate struct {
 	Totalpage   string
 	Currentpage string
+	Predpage 	string
+	Nextpage    string
 	List        []string //количество элементов в пагинации
 }
 type Params struct {
@@ -112,11 +115,16 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (error) {
 
 	//htmlhelp
 	p.Help = &HTMLPaginate{}
-	
+
 	if p.Page == 0 {
 		p.Help.Currentpage = "1"
+		p.Help.Predpage = "1"
 	} else {
 		p.Help.Currentpage = strconv.Itoa(p.Page)
+		p.Help.Predpage  = strconv.Itoa(p.Page - 1)
+	}
+	if p.Page > p.TotalPage {
+		p.Help.Nextpage = strconv.Itoa(p.Page + 1)
 	}
 
 	p.Help.Totalpage = strconv.Itoa(p.TotalPage)
