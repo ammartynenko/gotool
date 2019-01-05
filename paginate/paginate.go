@@ -11,7 +11,7 @@ import (
 	"math"
 	"errors"
 	"strconv"
-	"golang.org/x/tools/go/loader/testdata"
+
 )
 
 const prefix = "[gotool][paginate]"
@@ -121,10 +121,17 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (error) {
 		p.Help.Predpage = "1"
 	} else {
 		p.Help.Currentpage = strconv.Itoa(p.Page)
+	}
+	if p.Page == 1 {
+		p.Help.Predpage  = "1"
+	} else if p.Page > 1 {
 		p.Help.Predpage  = strconv.Itoa(p.Page - 1)
 	}
-	if p.Page > p.TotalPage {
+	 
+	if p.Page < p.TotalPage {
 		p.Help.Nextpage = strconv.Itoa(p.Page + 1)
+	} else if p.Page == p.TotalPage {
+		p.Help.Nextpage = strconv.Itoa(p.Page)
 	}
 
 	p.Help.Totalpage = strconv.Itoa(p.TotalPage)
