@@ -20,7 +20,7 @@ type Paginate struct {
 	Records   interface{}
 	Page      int
 	Log       *log.Logger
-	params    *Params
+	Params    *Params
 }
 type Params struct {
 	Limit       int
@@ -58,7 +58,7 @@ func (p *Paginate) MakePaginate(listResult interface{}) (error) {
 	//get total records in table
 	ch := make(chan bool, 1)
 	go func() {
-		if err := p.params.DBS.Model(listResult).Count(&p.Count).Error; err != nil {
+		if err := p.Params.DBS.Model(listResult).Count(&p.Count).Error; err != nil {
 			p.Log.Printf(err.Error())
 		}
 		ch <- true
@@ -68,25 +68,25 @@ func (p *Paginate) MakePaginate(listResult interface{}) (error) {
 	<-ch
 
 	//check correct count param.page
-	p.TotalPage = int(math.Ceil(float64(p.Count) / float64(p.params.Limit)))
-	if p.params.CurrentPage > p.TotalPage {
+	p.TotalPage = int(math.Ceil(float64(p.Count) / float64(p.Params.Limit)))
+	if p.Params.CurrentPage > p.TotalPage {
 		return errors.New("wrong page, page > totalpage")
 	}
 
 	//make offset
-	if p.params.CurrentPage > 0 {
-		offset = (p.params.CurrentPage - 1) * p.params.Limit
+	if p.Params.CurrentPage > 0 {
+		offset = (p.Params.CurrentPage - 1) * p.Params.Limit
 	}
 
 	//check filters sorts
-	if len(p.params.SortTypes) > 0 {
-		for _, x := range p.params.SortTypes {
-			p.params.DBS = p.params.DBS.Order(x)
+	if len(p.Params.SortTypes) > 0 {
+		for _, x := range p.Params.SortTypes {
+			p.Params.DBS = p.Params.DBS.Order(x)
 		}
 	}
 
 	//get result
-	if err := p.params.DBS.Limit(p.params.Limit).Offset(offset).Find(listResult).Error; err != nil {
+	if err := p.Params.DBS.Limit(p.Params.Limit).Offset(offset).Find(listResult).Error; err != nil {
 		return err
 	}
 	p.Records = listResult
@@ -95,5 +95,5 @@ func (p *Paginate) MakePaginate(listResult interface{}) (error) {
 	return nil
 }
 func (p *Paginate) Reconfig(newconfig *Params) {
-	p.params = newconfig
+	p.Params = newconfig
 }
