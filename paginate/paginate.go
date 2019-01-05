@@ -78,7 +78,8 @@ func NewPaginate(p *Params, resultList interface{}) (*Paginate, error) {
 	if err := p.DBS.Limit(p.Limit).Offset(offset).Find(resultList).Error; err != nil {
 		return nil, err
 	}
-
+	ppp.Records = resultList
+	
 	//return result
 	return &ppp, nil
 }
