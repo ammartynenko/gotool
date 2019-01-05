@@ -24,7 +24,6 @@ type Paginate struct {
 }
 type Params struct {
 	Limit       int
-	CurrentPage int
 	DBS         *gorm.DB
 	DebugQuery  bool
 	SortTypes   []string
@@ -52,13 +51,15 @@ func NewPaginate(p *Params) (*Paginate) {
 	return &ppp
 
 }
-func (p *Paginate) MakePaginate(listResult interface{}) (error) {
+func (p *Paginate) MakePaginate(page int, listResult interface{}) (error) {
+
 	//variables
 	var (
 		offset = 0
 	)
+	p.Page = page
 
-	p.Log.Printf("DBS: %v\n", p.Params.DBS)
+
 	//get total records in table
 	ch := make(chan bool, 1)
 	go func() {
@@ -73,13 +74,13 @@ func (p *Paginate) MakePaginate(listResult interface{}) (error) {
 
 	//check correct count param.page
 	p.TotalPage = int(math.Ceil(float64(p.Count) / float64(p.Params.Limit)))
-	if p.Params.CurrentPage > p.TotalPage {
+	if p.Page > p.TotalPage {
 		return errors.New("wrong page, page > totalpage")
 	}
 
 	//make offset
-	if p.Params.CurrentPage > 0 {
-		offset = (p.Params.CurrentPage - 1) * p.Params.Limit
+	if p.Page > 0 {
+		offset = (p.Page - 1) * p.Params.Limit
 	}
 
 	//check filters sorts
