@@ -56,7 +56,7 @@ func NewPaginate(p *Params) (*Paginate) {
 
 	//add help
 	ppp.Help = &HTMLPaginate{}
-	
+
 	//return instance
 	return &ppp
 
@@ -118,7 +118,7 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (error) {
 	}
 
 	p.Help.Totalpage = strconv.Itoa(p.TotalPage)
-	for i:=1; i <= p.TotalPage + 1; i++{
+	for i:=1; i <= p.TotalPage; i++{
 		p.Help.List = append(p.Help.List, strconv.Itoa(i))
 	}
 
