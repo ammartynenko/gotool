@@ -55,6 +55,7 @@ func (p *Paginate) MakePaginate(listResult interface{}) (error) {
 		offset = 0
 	)
 
+	p.Log.Printf("DBS: %v\n", p.Params.DBS)
 	//get total records in table
 	ch := make(chan bool, 1)
 	go func(db *gorm.DB, count *int ) {
