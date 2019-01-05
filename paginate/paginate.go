@@ -20,6 +20,7 @@ type Paginate struct {
 	Records   interface{}
 	Page      int
 	Log       *log.Logger
+	params    *Params
 }
 type Params struct {
 	Limit       int
@@ -31,12 +32,7 @@ type Params struct {
 }
 
 func NewPaginate(p *Params, resultList interface{}) (*Paginate, error) {
-	//variables
-	var (
-		ppp    Paginate
-		offset = 0
-	)
-
+	var ppp Paginate
 	//logger
 	if p.LogOut == nil {
 		ppp.Log = log.New(os.Stdout, prefix, log.Lshortfile|log.Ldate|log.Ltime)
@@ -49,11 +45,21 @@ func NewPaginate(p *Params, resultList interface{}) (*Paginate, error) {
 		p.DBS = p.DBS.Debug()
 	}
 
+	//return instance
+	return &ppp, nil
+
+}
+func (p *Paginate) MakePaginate(listResult interface{}) (error) {
+	//variables
+	var (
+		offset = 0
+	)
+
 	//get total records in table
 	ch := make(chan bool, 1)
 	go func() {
-		if err := p.DBS.Model(resultList).Count(&ppp.Count).Error; err != nil {
-			ppp.Log.Printf(err.Error())
+		if err := p.params.DBS.Model(listResult).Count(&p.Count).Error; err != nil {
+			p.Log.Printf(err.Error())
 		}
 		ch <- true
 	}()
@@ -62,29 +68,32 @@ func NewPaginate(p *Params, resultList interface{}) (*Paginate, error) {
 	<-ch
 
 	//check correct count param.page
-	ppp.TotalPage = int(math.Ceil(float64(ppp.Count) / float64(p.Limit)))
-	if p.CurrentPage > ppp.TotalPage {
-		return nil, errors.New("wrong page, page > totalpage")
+	p.TotalPage = int(math.Ceil(float64(p.Count) / float64(p.params.Limit)))
+	if p.params.CurrentPage > p.TotalPage {
+		return errors.New("wrong page, page > totalpage")
 	}
 
 	//make offset
-	if p.CurrentPage > 0 {
-		offset = (p.CurrentPage - 1) * p.Limit
+	if p.params.CurrentPage > 0 {
+		offset = (p.params.CurrentPage - 1) * p.params.Limit
 	}
 
 	//check filters sorts
-	if len(p.SortTypes) > 0 {
-		for _, x := range p.SortTypes {
-			p.DBS = p.DBS.Order(x)
+	if len(p.params.SortTypes) > 0 {
+		for _, x := range p.params.SortTypes {
+			p.params.DBS = p.params.DBS.Order(x)
 		}
 	}
 
 	//get result
-	if err := p.DBS.Limit(p.Limit).Offset(offset).Find(resultList).Error; err != nil {
-		return nil, err
+	if err := p.params.DBS.Limit(p.Limit).Offset(offset).Find(listResult).Error; err != nil {
+		return err
 	}
-	ppp.Records = resultList
+	p.Records = listResult
 
 	//return result
-	return &ppp, nil
+	return nil
+}
+func (p *Paginate) Reconfig(newconfig *Params) {
+	p.params = newconfig
 }
