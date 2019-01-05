@@ -111,6 +111,8 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (error) {
 	p.Records = listResult
 
 	//htmlhelp
+	p.Help = &HTMLPaginate{}
+	
 	if p.Page == 0 {
 		p.Help.Currentpage = "1"
 	} else {
