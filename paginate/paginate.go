@@ -31,7 +31,7 @@ type Params struct {
 	LogOut      *io.Writer
 }
 
-func NewPaginate(p *Params, resultList interface{}) (*Paginate, error) {
+func NewPaginate(p *Params) (*Paginate, error) {
 	var ppp Paginate
 	//logger
 	if p.LogOut == nil {
@@ -86,7 +86,7 @@ func (p *Paginate) MakePaginate(listResult interface{}) (error) {
 	}
 
 	//get result
-	if err := p.params.DBS.Limit(p.Limit).Offset(offset).Find(listResult).Error; err != nil {
+	if err := p.params.DBS.Limit(p.params.Limit).Offset(offset).Find(listResult).Error; err != nil {
 		return err
 	}
 	p.Records = listResult
