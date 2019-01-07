@@ -76,3 +76,6 @@ func (c *Configdump) Decodefile(v interface{}, filename string) error {
 	}
 	return nil
 }
+func (c *Configdump) Buffer() bytes.Buffer {
+	return c.b
+}
