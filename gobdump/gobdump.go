@@ -26,7 +26,7 @@ func NewConfigdump() *Configdump {
 }
 
 //encode interface to filename, filename all time recreate if exists, or create new
-func (c *Configdump) encodefile(v interface{}, filename string) error {
+func (c *Configdump) Encodefile(v interface{}, filename string) error {
 	err := c.enc.Encode(v)
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func (c *Configdump) encode(v interface{}) error {
 }
 
 //decode -> *Configdump.b (bytes.Buffer)
-func (c *Configdump) decode(v interface{}) error {
+func (c *Configdump) Decode(v interface{}) error {
 	err := c.dec.Decode(v)
 	if err != nil {
 		return err
@@ -62,7 +62,7 @@ func (c *Configdump) decode(v interface{}) error {
 }
 
 //decode from file, file open/read and decode to interface
-func (c *Configdump) decodefile(v interface{}, filename string) error {
+func (c *Configdump) Decodefile(v interface{}, filename string) error {
 	f, err := os.Open(filename)
 	if err != nil {
 		return err
