@@ -127,7 +127,7 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (error) {
 	} else if p.Page > 1 {
 		p.Help.Predpage  = strconv.Itoa(p.Page - 1)
 	}
-	 
+
 	if p.Page < p.TotalPage {
 		p.Help.Nextpage = strconv.Itoa(p.Page + 1)
 	} else if p.Page == p.TotalPage {
