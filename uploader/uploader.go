@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"mime/multipart"
 	"log"
+	"net/http"
 )
 
 type (
@@ -41,66 +42,73 @@ func NewUploader() *Uploader {
 //---------------------------------------------------------------------------
 //  загрузка одиночного файла с участием AJAX
 //---------------------------------------------------------------------------
-func (u *Uploader) UploadSingleAJAX(formName string) *FileInfo {
+func (u *Uploader) UploadSingleAJAX(formName, fileUploadPath string, r *http.Request) *FileInfo {
 	var f FileInfo
 
-	err := sr.request.ParseForm()
+	//parse form
+	err := r.ParseForm()
 	if err != nil {
-		sr.Spoukmux.logger.Error(fmt.Sprintf(SPOUKCARRYUPLOAD, err.Error()))
+		u.Log.Println(err.Error)
+		return nil
 	}
-	_, fh, err_open := sr.request.FormFile(formName)
-	if err_open != nil {
-		sr.Spoukmux.logger.Error(fmt.Sprintf(SPOUKCARRYUPLOAD, err_open.Error()))
+	//get element from form
+	_, fh, errOpen := r.FormFile(formName)
+	if errOpen != nil {
+		u.Log.Println(err.Error)
+		return nil
+	}
+	//open file handler getting from form for read and `upload`
+	fin, errInopen := fh.Open()
+	if errInopen != nil {
+		u.Log.Println(errInopen.Error)
+		return nil
+	}
+	defer fin.Close()
+
+	//create local file (handler) for write byte pipe
+	fout, errFout := os.Create(filepath.Join(fileUploadPath, fh.Filename))
+	if errFout != nil {
+		u.Log.Println(errInopen.Error)
+		return nil
+	}
+	defer fout.Close()
+
+	//copy file to file
+	_, errRead := io.Copy(fout, fin)
+	if errRead != nil {
+		u.Log.Println(errInopen.Error)
 		return nil
 	}
 
-	fin, err_inopen := fh.Open()
-	if err_inopen != nil {
-		sr.Spoukmux.logger.Error(fmt.Sprintf(SPOUKCARRYUPLOAD, err_inopen.Error()))
+	//получаю данные по файлу
+	info, errFi := fout.Stat()
+	if errFi != nil {
+		u.Log.Println(errInopen.Error)
 		return nil
-	} else {
-		defer fin.Close()
-		//создаю файл на локальной машине - приемный файл
-		fout, err_fout := os.Create(sr.Config().UPLOADFilesPath + fh.Filename)
-		if err_fout != nil {
-			sr.Spoukmux.logger.Error(fmt.Sprintf(SPOUKCARRYUPLOAD, err_fout.Error()))
-			return nil
-		} else {
-			defer fout.Close()
-			//копирую файл
-			_, err_read := io.Copy(fout, fin)
-			if err_read != nil {
-				sr.Spoukmux.logger.Error(fmt.Sprintf(SPOUKCARRYUPLOAD, err_read.Error()))
-				return nil
-			} else {
-				//получаю данные по файлу
-				info, err_fi := fout.Stat()
-				if err_fi != nil {
-					sr.Spoukmux.logger.Error(fmt.Sprintf(SPOUKCARRYUPLOAD, err_fi.Error()))
-					return nil
-				} else {
-					f = FileInfo{Name: fh.Filename, Path: sr.Config().UPLOADFilesPath + fh.Filename, Ext: filepath.Ext(info.Name()), Size: uint(info.Size())}
-				}
-				//success upload file
-				sr.Spoukmux.logger.Error(fmt.Sprintf(SPOUKCARRYUPLOADOK, fh.Filename))
-				return &f
-			}
-		}
-
 	}
+	f = FileInfo{
+		Name: fh.Filename,
+		Path: filepath.Join(fileUploadPath + fh.Filename),
+		Ext:  filepath.Ext(info.Name()),
+		Size: uint(info.Size()),
+	}
+
+	//success upload file
+	u.Log.Printf("Success upload file `%s`\n", fh.Filename)
+	return &f
 }
 
 //---------------------------------------------------------------------------
 // загрузка одиночного файла, функцию оптимально использовать как горутину при обработке `multiple`
 //---------------------------------------------------------------------------
-func (u *SpoukUploader) goUploadSingle(fh *multipart.FileHeader, ajax bool, sr *SpoukCarry) *FileInfo {
+func (u *Uploader) goUploadSingle(fh *multipart.FileHeader, ajax bool, r *http.Request) *FileInfo {
 	var f FileInfo
 
 	//не аякс, значит горутина
 	if !ajax {
 		defer func() {
 			u.Stock = append(u.Stock, f)
-			w.Done()
+			u.Done()
 		}()
 	}
 
