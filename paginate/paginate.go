@@ -11,8 +11,7 @@ import (
 	"math"
 	"errors"
 	"strconv"
-
-	"golang.org/x/tools/go/gcimporter15/testdata"
+	
 )
 
 const prefix = "[gotool][paginate]"
