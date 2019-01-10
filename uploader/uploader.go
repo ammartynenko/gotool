@@ -2,7 +2,6 @@ package uploader
 
 import (
 	"sync"
-	"fmt"
 	"os"
 	"io"
 	"path/filepath"
@@ -15,6 +14,7 @@ type (
 	Uploader struct {
 		stock []FileInfo
 		sync.WaitGroup
+		sync.RWMutex
 		Log   *log.Logger
 	}
 	FileInfo struct {
@@ -22,6 +22,16 @@ type (
 		Path string
 		Ext  string
 		Size uint
+	}
+	UploadConfig struct {
+		Uploadpath string
+		Ajax       bool
+		Req        *http.Request
+		FormName   string
+	}
+	fileConfig struct {
+		Fh         *multipart.FileHeader
+		Uploadpath string
 	}
 )
 
@@ -40,158 +50,81 @@ func NewUploader() *Uploader {
 }
 
 //---------------------------------------------------------------------------
-//  загрузка одиночного файла с участием AJAX
+//  организация пайпа для загрузки файлов
+//  урправляющий загрузкой  + горутины на каждый файл
+//  управляющий парсит форму на список файлов  и запускает горутины на обработку
+//  файловых дескрипторов
 //---------------------------------------------------------------------------
-func (u *Uploader) UploadSingleAJAX(formName, fileUploadPath string, r *http.Request) *FileInfo {
-	var f FileInfo
+func (u *Uploader) UploadFiles(c *UploadConfig) error {
 
-	//parse form
-	err := r.ParseForm()
+	//parse form for get file handlers
+	err := c.Req.ParseMultipartForm(32 << 20)
 	if err != nil {
-		u.Log.Println(err.Error)
-		return nil
+		u.Log.Printf(err.Error())
+		return err
 	}
-	//get element from form
-	_, fh, errOpen := r.FormFile(formName)
-	if errOpen != nil {
-		u.Log.Println(err.Error)
-		return nil
+	formdata := c.Req.MultipartForm
+	listfiles := formdata.File[c.FormName]
+
+	//run gorutines for  upload files
+	for _, INfile := range listfiles {
+		u.Add(1)
+		go u.goup(&fileConfig{
+			Fh:         INfile,
+			Uploadpath: c.Uploadpath,
+		})
 	}
-	//open file handler getting from form for read and `upload`
-	fin, errInopen := fh.Open()
-	if errInopen != nil {
-		u.Log.Println(errInopen.Error)
-		return nil
+	//ожидаю завершение закачки
+	u.Wait()
+	u.Log.Printf("Success upload all files")
+	for i, x := range u.stock {
+		u.Log.Printf("%d. %s\n", i, x.Name)
+	}
+	return nil
+}
+func (u *Uploader) goup(f *fileConfig) {
+	defer u.Done()
+	fin, err := f.Fh.Open()
+	if err != nil {
+		u.Log.Println(err)
+		return
 	}
 	defer fin.Close()
 
-	//create local file (handler) for write byte pipe
-	fout, errFout := os.Create(filepath.Join(fileUploadPath, fh.Filename))
-	if errFout != nil {
-		u.Log.Println(errInopen.Error)
-		return nil
+	//создаю файл на локальной машине - приемный файл
+	fout, err := os.Create(filepath.Join(f.Uploadpath, f.Fh.Filename))
+	if err != nil {
+		u.Log.Println(err)
+		return
 	}
 	defer fout.Close()
 
-	//copy file to file
-	_, errRead := io.Copy(fout, fin)
-	if errRead != nil {
-		u.Log.Println(errInopen.Error)
-		return nil
+	//копирую файл
+	_, err = io.Copy(fout, fin)
+	if err != nil {
+		u.Log.Println(err)
+		return
 	}
 
 	//получаю данные по файлу
-	info, errFi := fout.Stat()
-	if errFi != nil {
-		u.Log.Println(errInopen.Error)
-		return nil
+	info, err := fout.Stat()
+	if err != nil {
+		u.Log.Println(err)
+		return
 	}
-	f = FileInfo{
-		Name: fh.Filename,
-		Path: filepath.Join(fileUploadPath + fh.Filename),
+
+	fu := FileInfo{
+		Name: f.Fh.Filename,
+		Path: filepath.Join(f.Uploadpath, f.Fh.Filename),
 		Ext:  filepath.Ext(info.Name()),
 		Size: uint(info.Size()),
 	}
+	//lock shared slice
+	u.Lock()
+	u.stock = append(u.stock, fu)
+	u.Unlock()
 
 	//success upload file
-	u.Log.Printf("Success upload file `%s`\n", fh.Filename)
-	return &f
-}
-
-//---------------------------------------------------------------------------
-// загрузка одиночного файла, функцию оптимально использовать как горутину при обработке `multiple`
-//---------------------------------------------------------------------------
-func (u *Uploader) goUploadSingle(fh *multipart.FileHeader, ajax bool, r *http.Request) *FileInfo {
-	var f FileInfo
-
-	//не аякс, значит горутина
-	if !ajax {
-		defer func() {
-			u.Stock = append(u.Stock, f)
-			u.Done()
-		}()
-	}
-
-	fin, err_inopen := fh.Open()
-	if err_inopen != nil {
-		sr.Spoukmux.logger.Error(fmt.Sprintf(SPOUKCARRYUPLOAD, err_inopen.Error()))
-		return nil
-	} else {
-		defer fin.Close()
-		//создаю файл на локальной машине - приемный файл
-		fout, err_fout := os.Create(sr.Config().UPLOADFilesPath + fh.Filename)
-		if err_fout != nil {
-			sr.Spoukmux.logger.Error(fmt.Sprintf(SPOUKCARRYUPLOAD, err_fout.Error()))
-			return nil
-		} else {
-			defer fout.Close()
-			//копирую файл
-			_, err_read := io.Copy(fout, fin)
-			if err_read != nil {
-				sr.Spoukmux.logger.Error(fmt.Sprintf(SPOUKCARRYUPLOAD, err_read.Error()))
-				return nil
-			} else {
-				//получаю данные по файлу
-				info, err_fi := fout.Stat()
-				if err_fi != nil {
-					sr.Spoukmux.logger.Error(fmt.Sprintf(SPOUKCARRYUPLOAD, err_fi.Error()))
-					return nil
-				} else {
-					f = FileInfo{Name: fh.Filename, Path: sr.Config().UPLOADFilesPath + fh.Filename, Ext: filepath.Ext(info.Name()), Size: uint(info.Size())}
-				}
-				//success upload file
-				sr.Spoukmux.logger.Error(fmt.Sprintf(SPOUKCARRYUPLOADOK, fh.Filename))
-				return &f
-			}
-		}
-
-	}
-}
-
-//---------------------------------------------------------------------------
-//  загрузка single/multiple формы без участия сторонних асинхронных методов типа ajax
-//---------------------------------------------------------------------------
-func (u *SpoukUploader) Upload(nameForm string, ajax bool, sr *SpoukCarry) (error) {
-	//получаю список файлов мультиформ
-	if !ajax {
-		//в цикле открывая дескрипторы файлов для загрузки и файлы для принятия
-		//запуск на каждый дескриптор горутину с синхронизацией загрузки
-		//ajax == false
-		err := sr.request.ParseMultipartForm(32 << 20)
-		if err != nil {
-			sr.Spoukmux.logger.Error(fmt.Sprintf(SPOUKCARRYUPLOAD, err.Error()))
-			return err
-		}
-		formdata := sr.Request().MultipartForm
-		listfiles := formdata.File[nameForm]
-		fmt.Printf("LISTFILES===> %v\n", listfiles)
-
-		w.Add(len(listfiles))
-		for _, INfile := range listfiles {
-			go u.goUploadSingle(INfile, false, sr)
-		}
-		//ожидаю завершение закачки
-		w.Wait()
-	} else {
-		//ajax, запуск без синхрона, т.к. каждый выхов аякса дергает жту функцию, которая сама
-		//запускается как горутина
-		//sr.request.ParseMultipartForm(32 << 20)
-		err := sr.request.ParseForm()
-		if err != nil {
-			sr.Spoukmux.logger.Error(fmt.Sprintf(SPOUKCARRYUPLOAD, err.Error()))
-			return err
-		}
-		_, handler, err_form := sr.request.FormFile("uploadfile")
-		if err_form != nil {
-			sr.Spoukmux.logger.Error(fmt.Sprintf(SPOUKCARRYUPLOAD, err_form.Error()))
-			return err_form
-		}
-		f := u.goUploadSingle(handler, true, sr)
-		if f != nil {
-			u.Stock = append(u.Stock, *f)
-		}
-	}
-	fmt.Println("[sync] All uploading")
-	fmt.Printf("StockFIles: %v\n", u.Stock)
-	return nil
+	u.Log.Printf("Success upload file `%s`\n", f.Fh.Filename)
+	return
 }
