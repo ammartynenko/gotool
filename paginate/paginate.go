@@ -12,6 +12,7 @@ import (
 	"errors"
 	"strconv"
 
+	"golang.org/x/tools/go/gcimporter15/testdata"
 )
 
 const prefix = "[gotool][paginate]"
@@ -91,8 +92,13 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (error) {
 
 	//check correct count param.page
 	p.TotalPage = int(math.Ceil(float64(p.Count) / float64(p.Params.Limit)))
-	if p.Page > p.TotalPage {
-		return errors.New("wrong page, page > totalpage")
+
+	if p.TotalPage == 0 {
+		p.TotalPage = 1
+	} else {
+		if p.Page > p.TotalPage {
+			return errors.New("wrong page, page > totalpage")
+		}
 	}
 
 	//make offset
