@@ -12,7 +12,7 @@ import (
 
 type (
 	Uploader struct {
-		stock []FileInfo
+		Stock []FileInfo
 		sync.WaitGroup
 		sync.RWMutex
 		Log   *log.Logger
@@ -25,7 +25,6 @@ type (
 	}
 	UploadConfig struct {
 		Uploadpath string
-		Ajax       bool
 		Req        *http.Request
 		FormName   string
 	}
@@ -55,8 +54,7 @@ func NewUploader() *Uploader {
 //  управляющий парсит форму на список файлов  и запускает горутины на обработку
 //  файловых дескрипторов
 //---------------------------------------------------------------------------
-func (u *Uploader) UploadFiles(c *UploadConfig) error {
-
+func (u *Uploader) UploadFiles(c *UploadConfig) (error) {
 	//parse form for get file handlers
 	err := c.Req.ParseMultipartForm(32 << 20)
 	if err != nil {
@@ -77,11 +75,13 @@ func (u *Uploader) UploadFiles(c *UploadConfig) error {
 	//ожидаю завершение закачки
 	u.Wait()
 	u.Log.Printf("Success upload all files")
-	for i, x := range u.stock {
+	for i, x := range u.Stock {
 		u.Log.Printf("%d. %s\n", i, x.Name)
 	}
 	return nil
 }
+
+//горутина для скачивания файла
 func (u *Uploader) goup(f *fileConfig) {
 	defer u.Done()
 	fin, err := f.Fh.Open()
@@ -121,7 +121,7 @@ func (u *Uploader) goup(f *fileConfig) {
 	}
 	//lock shared slice
 	u.Lock()
-	u.stock = append(u.stock, fu)
+	u.Stock = append(u.Stock, fu)
 	u.Unlock()
 
 	//success upload file
