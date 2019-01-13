@@ -252,6 +252,14 @@ func (m *Convert) HTML5DataToUnix(s string) int64 {
 	return r.Unix()
 }
 
+//convert HTML5Data->time.Time
+func (m *Convert) HTML5DataToTime(s string) time.Time {
+	l := "2006-01-02T15:04"
+	r, _ := time.Parse(l, s)
+	return r
+}
+
+
 //UnixTime->HTML5Data
 func (m *Convert) UnixtimetoHTML5Date(unixtime int64) string {
 	return time.Unix(unixtime, 0).Format("2006-01-02")
