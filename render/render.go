@@ -137,6 +137,10 @@ func (s *Render) ReloadTemplate() {
 	}
 }
 
+//перегружает отдельный блок/шаблон для обновления данных
+func (s *Render) ExecuteTemplate(name string, data,w http.ResponseWriter) {
+	s.Temp.ExecuteTemplate(w, name, data)
+}
 //показ указанного шаблона, с указанием data-контейнера, и интерфейса вывода
 func (s *Render) Render(name string, data interface{}, w interface{}) (err error) {
 	defer s.catcherPanic()
