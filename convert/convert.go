@@ -366,9 +366,9 @@ func (s *Convert) ShowAscii() {
 //---------------------------------------------------------------------------
 //  convert string to TIme.Time
 //---------------------------------------------------------------------------
-func (s *Convert) StringToTime(year,mont,day,hour,minute int) *time.Time {
+func (s *Convert) StringToTime(year,mont,day,hour,minute,second int) *time.Time {
 	layout2 := "2006-01-02 15:04:05"
-	t, err := time.Parse(layout2, fmt.Sprintf("%d-%d-%d %d:%d:%d", year, mont,day,hour,minute))
+	t, err := time.Parse(layout2, fmt.Sprintf("%d-%d-%d %d:%d:%d", year, mont,day,hour,minute,second))
 	if err != nil {
 		s.logger.Printf(err.Error())
 		return nil
