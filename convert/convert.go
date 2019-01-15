@@ -363,5 +363,15 @@ func (s *Convert) ShowAscii() {
 	}
 }
 
-
-
+//---------------------------------------------------------------------------
+//  convert string to TIme.Time
+//---------------------------------------------------------------------------
+func (s *Convert) StringToTime() *time.Time {
+	layout2 := "2006-01-02 15:04:05"
+	t, err := time.Parse(layout2, "2019-02-03 20:10:00")
+	if err != nil {
+		s.logger.Printf(err.Error())
+		return nil
+	}
+	return &t
+}
