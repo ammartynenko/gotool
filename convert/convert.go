@@ -368,7 +368,16 @@ func (s *Convert) ShowAscii() {
 //---------------------------------------------------------------------------
 func (s *Convert) StringToTime(year,mont,day,hour,minute,second int) *time.Time {
 	layout2 := "2006-01-02 15:04:05"
-	t, err := time.Parse(layout2, fmt.Sprintf("%d-%d-%d %d:%d:%d", year, mont,day,hour,minute,second))
+	var res []string
+	for _,x := range []int{year,mont,day,hour,minute,second} {
+		if x < 10 {
+			res = append(res, fmt.Sprintf("0%d",x))
+		} else {
+			res = append(res, fmt.Sprintf("%d",x))
+		}
+	}
+
+	t, err := time.Parse(layout2, fmt.Sprintf("%d-%d-%d %d:%d:%d", res[0],res[1],res[2],res[3],res[4],res[5]))
 	if err != nil {
 		s.logger.Printf(err.Error())
 		return nil
