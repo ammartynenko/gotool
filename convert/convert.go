@@ -377,7 +377,7 @@ func (s *Convert) StringToTime(year,mont,day,hour,minute,second int) *time.Time 
 		}
 	}
 
-	t, err := time.Parse(layout2, fmt.Sprintf("%d-%d-%d %d:%d:%d", res[0],res[1],res[2],res[3],res[4],res[5]))
+	t, err := time.Parse(layout2, fmt.Sprintf("%s-%s-%s %s:%s:%s", res[0],res[1],res[2],res[3],res[4],res[5]))
 	if err != nil {
 		s.logger.Printf(err.Error())
 		return nil
