@@ -432,8 +432,13 @@ func (h *HumanSizer) HumanConvert(v float64, s rune) float64 {
 		h.key = 'g'
 		h.pattern = "%.3f GBytes"
 		h.valid = true
-	case 'p', 'P':
+	case 't', 'T':
 		h.total = v / math.Pow(1024, 4)
+		h.key = 't'
+		h.pattern = "%.3f TBytes"
+		h.valid = true
+	case 'p', 'P':
+		h.total = v / math.Pow(1024, 5)
 		h.key = 'p'
 		h.pattern = "%.3f PBytes"
 		h.valid = true
