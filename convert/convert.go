@@ -14,6 +14,7 @@ import (
 	"fmt"
 	d "github.com/fiam/gounidecode/unidecode"
 	"path/filepath"
+	"math"
 )
 
 type Convert struct {
@@ -259,7 +260,6 @@ func (m *Convert) HTML5DataToTime(s string) time.Time {
 	return r
 }
 
-
 //UnixTime->HTML5Data
 func (m *Convert) UnixtimetoHTML5Date(unixtime int64) string {
 	return time.Unix(unixtime, 0).Format("2006-01-02")
@@ -308,6 +308,7 @@ func (s *Convert) preCorrect(str string) string {
 	}
 	return s.correct(strings.Join(tmp, ""))
 }
+
 //конвертация-транслитерация имени файла
 func (s *Convert) TransliterCyrFilename(filename string) string {
 	var extension = filepath.Ext(filename)
@@ -329,6 +330,7 @@ func (s *Convert) TransliterCyrFilename(filename string) string {
 	}
 	return strings.Join([]string{strings.Join(result, ""), extension}, "")
 }
+
 //конвертация-транслитерация в кириллическое представление параметра функции
 func (s *Convert) TransliterCyr(str string) string {
 	str = s.preCorrect(str)
@@ -347,6 +349,7 @@ func (s *Convert) TransliterCyr(str string) string {
 	}
 	return strings.Join(result, "")
 }
+
 //проверка вхождения целочисленного элемента в список элементов
 func (s *Convert) InSlice(str []int, target int) bool {
 	for x := 0; x < len(str); x++ {
@@ -366,21 +369,73 @@ func (s *Convert) ShowAscii() {
 //---------------------------------------------------------------------------
 //  convert string to TIme.Time
 //---------------------------------------------------------------------------
-func (s *Convert) StringToTime(year,mont,day,hour,minute,second int) *time.Time {
+func (s *Convert) StringToTime(year, mont, day, hour, minute, second int) *time.Time {
 	layout2 := "2006-01-02 15:04:05"
 	var res []string
-	for _,x := range []int{year,mont,day,hour,minute,second} {
+	for _, x := range []int{year, mont, day, hour, minute, second} {
 		if x < 10 {
-			res = append(res, fmt.Sprintf("0%d",x))
+			res = append(res, fmt.Sprintf("0%d", x))
 		} else {
-			res = append(res, fmt.Sprintf("%d",x))
+			res = append(res, fmt.Sprintf("%d", x))
 		}
 	}
 
-	t, err := time.Parse(layout2, fmt.Sprintf("%s-%s-%s %s:%s:%s", res[0],res[1],res[2],res[3],res[4],res[5]))
+	t, err := time.Parse(layout2, fmt.Sprintf("%s-%s-%s %s:%s:%s", res[0], res[1], res[2], res[3], res[4], res[5]))
 	if err != nil {
 		s.logger.Printf(err.Error())
 		return nil
 	}
 	return &t
+}
+
+//---------------------------------------------------------------------------
+//  converter human view size bytes [bytes,kbytes,mbytes,gigabytes,terabytes,petabytes
+//---------------------------------------------------------------------------
+type HumanSizer struct {
+	key     rune
+	pattern string
+	total   float64
+	valid   bool
+}
+
+func (h HumanSizer) String() string {
+	if h.valid {
+		return fmt.Sprintf(h.pattern, h.total)
+	}
+	return fmt.Sprint(h.pattern)
+}
+
+func (h *HumanSizer) HumanConvert(v float64, s rune) float64 {
+	switch s {
+	case 'b', 'B':
+		h.total = v
+		h.key = 'b'
+		h.pattern = "%.3f byte(s)"
+		h.valid = true
+	case 'k', 'K':
+		h.total = v / math.Pow(1024, 1)
+		h.key = 'k'
+		h.pattern = "%.3f KBytes"
+		h.valid = true
+	case 'm', 'M':
+		h.total = v / math.Pow(1024, 2)
+		h.key = 'm'
+		h.pattern = "%.3f MBytes"
+		h.valid = true
+	case 'g', 'G':
+		h.total = v / math.Pow(1024, 3)
+		h.key = 'g'
+		h.pattern = "%.3f GBytes"
+		h.valid = true
+	case 'p', 'P':
+		h.total = v / math.Pow(1024, 4)
+		h.key = 'p'
+		h.pattern = "%.3f PBytes"
+		h.valid = true
+	default:
+		log.Fatal("wrong type size")
+		h.pattern = "[WRONG TYPE FOR VIEW]"
+		h.valid = false
+	}
+	return h.total
 }
