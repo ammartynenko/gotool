@@ -400,6 +400,9 @@ type HumanSizer struct {
 func NewHumaneSizer() *HumanSizer {
 	return &HumanSizer{}
 }
+func (h HumanSizer) Total() float64 {
+	return h.total
+}
 func (h HumanSizer) String() string {
 	if h.valid {
 		return fmt.Sprintf(h.pattern, h.total)
