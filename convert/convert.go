@@ -389,6 +389,52 @@ func (s *Convert) StringToTime(year, mont, day, hour, minute, second int) *time.
 }
 
 //---------------------------------------------------------------------------
+//  check type elemnent [bool/int] and return bool result
+//--------------------------------------------------------
+func (s *Convert) ThisInt(v interface{}) bool {
+	switch v.(type) {
+	case int, int8, int16, int32, int64:
+		return true
+	}
+	return false
+}
+func (s *Convert) ThisString(v interface{}) bool {
+	switch v.(type) {
+	case string:
+		return true
+	}
+	return false
+}
+func (s *Convert) ThisFloat(v interface{}) bool {
+	switch v.(type) {
+	case float32, float64:
+		return true
+	}
+	return false
+}
+func (s *Convert) ThisComplex(v interface{}) bool {
+	switch v.(type) {
+	case complex64, complex128:
+		return true
+	}
+	return false
+}
+func (s *Convert) ThisSliceINT(v interface{}) bool {
+	switch v.(type) {
+	case []int, []int64, []int32, []int16, []int8:
+		return true
+	}
+	return false
+}
+func (s *Convert) ThisSliceString(v interface{}) bool {
+	switch v.(type) {
+	case []string:
+		return true
+	}
+	return false
+}
+
+//---------------------------------------------------------------------------
 //  converter human view size bytes [bytes,kbytes,mbytes,gigabytes,terabytes,petabytes
 //---------------------------------------------------------------------------
 type HumanSizer struct {
@@ -397,6 +443,7 @@ type HumanSizer struct {
 	total   float64
 	valid   bool
 }
+
 func NewHumaneSizer() *HumanSizer {
 	return &HumanSizer{}
 }
