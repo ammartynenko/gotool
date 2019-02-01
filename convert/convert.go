@@ -433,6 +433,13 @@ func (s *Convert) ThisSliceString(v interface{}) bool {
 	}
 	return false
 }
+func (s *Convert) ThisStringToInt(v string) (*int, bool) {
+	as, err := strconv.Atoi(v)
+	if err != nil {
+		return nil, false
+	}
+	return &as, true
+}
 
 //---------------------------------------------------------------------------
 //  converter human view size bytes [bytes,kbytes,mbytes,gigabytes,terabytes,petabytes
