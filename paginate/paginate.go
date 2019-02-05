@@ -11,7 +11,6 @@ import (
 	"math"
 	"errors"
 	"strconv"
-
 )
 
 const prefix = "[gotool][paginate]"
@@ -28,16 +27,16 @@ type Paginate struct {
 type HTMLPaginate struct {
 	Totalpage   string
 	Currentpage string
-	Predpage 	string
+	Predpage    string
 	Nextpage    string
 	List        []string //количество элементов в пагинации
 }
 type Params struct {
-	Limit       int
-	DBS         *gorm.DB
-	DebugQuery  bool
-	SortTypes   []string
-	LogOut      *io.Writer
+	Limit      int
+	DBS        *gorm.DB
+	DebugQuery bool
+	SortTypes  []string
+	LogOut     *io.Writer
 }
 
 func NewPaginate(p *Params) (*Paginate) {
@@ -76,12 +75,12 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (error) {
 		p.Page = page
 	}
 
-
 	//get total records in table
 	ch := make(chan bool, 1)
+
 	go func() {
 		if err := p.Params.DBS.Model(listResult).Count(&p.Count).Error; err != nil {
-			//p.Log.Printf(err.Error())
+			p.Log.Println(err)
 		}
 		ch <- true
 	}()
@@ -128,9 +127,9 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (error) {
 		p.Help.Currentpage = strconv.Itoa(p.Page)
 	}
 	if p.Page == 1 {
-		p.Help.Predpage  = "1"
+		p.Help.Predpage = "1"
 	} else if p.Page > 1 {
-		p.Help.Predpage  = strconv.Itoa(p.Page - 1)
+		p.Help.Predpage = strconv.Itoa(p.Page - 1)
 	}
 
 	if p.Page < p.TotalPage {
@@ -140,10 +139,9 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (error) {
 	}
 
 	p.Help.Totalpage = strconv.Itoa(p.TotalPage)
-	for i:=1; i <= p.TotalPage; i++{
+	for i := 1; i <= p.TotalPage; i++ {
 		p.Help.List = append(p.Help.List, strconv.Itoa(i))
 	}
-
 
 	//return result
 	return nil

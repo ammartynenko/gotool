@@ -225,7 +225,6 @@ func (m *Convert) ConvertHTMLDatetoUnix(date string) (int64, error) {
 		}
 	}
 	return 0, nil
-
 }
 
 //конвертация UNIX временного предсталения в строку
