@@ -33,6 +33,7 @@ type HTMLPaginate struct {
 	Predpage    string
 	Nextpage    string
 	List        []string //количество элементов в пагинации
+
 }
 
 type ResultPaginate struct {
@@ -43,6 +44,7 @@ type ResultPaginate struct {
 	Count      int
 	CountLinks int
 	Links      []int
+	LinksStr   []string
 }
 
 func NewPaginate(p *Params) (*Paginate) {
@@ -144,30 +146,33 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginat
 	for i := 1; i <= r.TotalPage; i++ {
 		r.Help.List = append(r.Help.List, strconv.Itoa(i))
 	}
+
 	//range available pages for view
-	//totalpage = 10 maxCountLinks = 3 currentpage = 4, == <<[5,6,7]>> - r.Links
-	//tp = 5 Links = 30 cp = 2 === <<[3,4,5]>>
 	if r.CountLinks > r.TotalPage {
 		for x := 1; x < r.TotalPage; x++ {
 			r.Links = append(r.Links, x)
+			r.LinksStr = append(r.LinksStr, strconv.Itoa(x))
 		}
 	}
 	if r.CountLinks < r.TotalPage {
 		if page+r.CountLinks == r.TotalPage {
 			for x := page; x < page+r.CountLinks; x++ {
 				r.Links = append(r.Links, x)
+				r.LinksStr = append(r.LinksStr, strconv.Itoa(x))
 			}
 		}
 
 		if page+r.CountLinks < r.TotalPage {
 			for x := page; x < page+r.CountLinks; x++ {
 				r.Links = append(r.Links, x)
+				r.LinksStr = append(r.LinksStr, strconv.Itoa(x))
 			}
 		}
 
 		if page+r.CountLinks > r.TotalPage {
 			for x := (r.TotalPage - r.CountLinks) + 1; x <= (r.TotalPage-r.CountLinks)+r.CountLinks; x ++ {
 				r.Links = append(r.Links, x)
+				r.LinksStr = append(r.LinksStr, strconv.Itoa(x))
 			}
 		}
 	}
