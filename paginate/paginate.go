@@ -80,13 +80,6 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginat
 	} else {
 		r.Page = page
 	}
-
-	//range available pages for view
-	//totalpage = 10 maxCountLinks = 3 currentpage = 4, == <<[5,6,7]>> - r.Links
-	for x := page; x <= r.CountLinks; x ++ {
-		r.Links = append(r.Links, x)
-	}
-
 	//get total records in table
 	ch := make(chan bool, 1)
 
@@ -150,6 +143,18 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginat
 	r.Help.Totalpage = strconv.Itoa(r.TotalPage)
 	for i := 1; i <= r.TotalPage; i++ {
 		r.Help.List = append(r.Help.List, strconv.Itoa(i))
+	}
+	//range available pages for view
+	//totalpage = 10 maxCountLinks = 3 currentpage = 4, == <<[5,6,7]>> - r.Links
+	//tp = 5 Links = 30 cp = 2 === <<[3,4,5]>>
+	if r.CountLinks >= r.TotalPage {
+		for x := page; x <= r.TotalPage; x ++ {
+			r.Links = append(r.Links, x)
+		}
+	} else {
+		for x := page; x <= page + r.CountLinks; x ++ {
+			r.Links = append(r.Links, x)
+		}
 	}
 
 	//return result
