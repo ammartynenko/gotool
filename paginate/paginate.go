@@ -147,13 +147,21 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginat
 	//range available pages for view
 	//totalpage = 10 maxCountLinks = 3 currentpage = 4, == <<[5,6,7]>> - r.Links
 	//tp = 5 Links = 30 cp = 2 === <<[3,4,5]>>
-	if r.CountLinks >= r.TotalPage {
-		for x := page; x <= r.TotalPage; x ++ {
+	if r.CountLinks > r.TotalPage {
+		for x := 1; x < page; x++ {
 			r.Links = append(r.Links, x)
 		}
-	} else {
-		for x := page; x <= page + r.CountLinks; x ++ {
-			r.Links = append(r.Links, x)
+	}
+	if r.CountLinks < r.TotalPage {
+		if page+r.CountLinks < page {
+			for x := page; x < page+r.CountLinks; x++ {
+				r.Links = append(r.Links, x)
+			}
+		}
+		if page+r.CountLinks >= r.TotalPage {
+			for x := (r.TotalPage - r.CountLinks) + 1; x <= r.TotalPage; x ++ {
+				r.Links = append(r.Links, x)
+			}
 		}
 	}
 
