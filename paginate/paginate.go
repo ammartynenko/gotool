@@ -42,6 +42,7 @@ type ResultPaginate struct {
 	Page       int
 	Count      int
 	CountLinks int
+	Links      []int
 }
 
 func NewPaginate(p *Params) (*Paginate) {
@@ -61,8 +62,8 @@ func NewPaginate(p *Params) (*Paginate) {
 func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginate, error) {
 	//result instance
 	r := ResultPaginate{
-		Help: &HTMLPaginate{},
-		CountLinks:p.Params.CountLinks,
+		Help:       &HTMLPaginate{},
+		CountLinks: p.Params.CountLinks,
 	}
 
 	//check debug
@@ -78,6 +79,12 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginat
 		r.Page = 1
 	} else {
 		r.Page = page
+	}
+
+	//range available pages for view
+	//totalpage = 10 maxCountLinks = 3 currentpage = 4, == <<[5,6,7]>> - r.Links
+	for x := page; x <= r.CountLinks; x ++ {
+		r.Links = append(r.Links, x)
 	}
 
 	//get total records in table
