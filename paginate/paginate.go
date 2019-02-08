@@ -16,13 +16,8 @@ import (
 const prefix = "[gotool][paginate]"
 
 type Paginate struct {
-	//TotalPage int
-	//Count     int
-	//Records   interface{}
-	//Page      int
 	Log    *log.Logger
 	Params *Params
-	//Help      *HTMLPaginate
 }
 type Params struct {
 	Limit      int
