@@ -25,6 +25,7 @@ type Params struct {
 	DebugQuery bool
 	SortTypes  []string
 	LogOut     *io.Writer
+	CountLinks int
 }
 type HTMLPaginate struct {
 	Totalpage   string
@@ -35,11 +36,12 @@ type HTMLPaginate struct {
 }
 
 type ResultPaginate struct {
-	Help      *HTMLPaginate
-	TotalPage int
-	Records   interface{}
-	Page      int
-	Count     int
+	Help       *HTMLPaginate
+	TotalPage  int
+	Records    interface{}
+	Page       int
+	Count      int
+	CountLinks int
 }
 
 func NewPaginate(p *Params) (*Paginate) {
@@ -60,6 +62,7 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginat
 	//result instance
 	r := ResultPaginate{
 		Help: &HTMLPaginate{},
+		CountLinks:p.Params.CountLinks,
 	}
 
 	//check debug
