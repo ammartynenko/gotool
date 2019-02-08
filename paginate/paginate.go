@@ -148,7 +148,7 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginat
 	//totalpage = 10 maxCountLinks = 3 currentpage = 4, == <<[5,6,7]>> - r.Links
 	//tp = 5 Links = 30 cp = 2 === <<[3,4,5]>>
 	if r.CountLinks > r.TotalPage {
-		for x := 1; x < page; x++ {
+		for x := 1; x < r.TotalPage; x++ {
 			r.Links = append(r.Links, x)
 		}
 	}
