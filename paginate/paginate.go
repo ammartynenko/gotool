@@ -16,13 +16,20 @@ import (
 const prefix = "[gotool][paginate]"
 
 type Paginate struct {
-	TotalPage int
-	Count     int
-	Records   interface{}
-	Page      int
-	Log       *log.Logger
-	Params    *Params
-	Help      *HTMLPaginate
+	//TotalPage int
+	//Count     int
+	//Records   interface{}
+	//Page      int
+	Log    *log.Logger
+	Params *Params
+	//Help      *HTMLPaginate
+}
+type Params struct {
+	Limit      int
+	DBS        *gorm.DB
+	DebugQuery bool
+	SortTypes  []string
+	LogOut     *io.Writer
 }
 type HTMLPaginate struct {
 	Totalpage   string
@@ -31,12 +38,13 @@ type HTMLPaginate struct {
 	Nextpage    string
 	List        []string //количество элементов в пагинации
 }
-type Params struct {
-	Limit      int
-	DBS        *gorm.DB
-	DebugQuery bool
-	SortTypes  []string
-	LogOut     *io.Writer
+
+type ResultPaginate struct {
+	Help      *HTMLPaginate
+	TotalPage int
+	Records   interface{}
+	Page      int
+	Count     int
 }
 
 func NewPaginate(p *Params) (*Paginate) {
@@ -47,39 +55,38 @@ func NewPaginate(p *Params) (*Paginate) {
 	} else {
 		ppp.Log = log.New(*p.LogOut, prefix, log.Lshortfile|log.Ldate|log.Ltime)
 	}
-
 	//config
 	ppp.Params = p
 
-	//check debug
-	if p.DebugQuery {
-		p.DBS = p.DBS.Debug()
-	}
-
-	//add help
-	ppp.Help = &HTMLPaginate{}
-
 	//return instance
 	return &ppp
-
 }
-func (p *Paginate) MakePaginate(page int, listResult interface{}) (error) {
+func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginate, error) {
+	//result instance
+	r := ResultPaginate{
+		Help: &HTMLPaginate{},
+	}
+
+	//check debug
+	if p.Params.DebugQuery {
+		p.Params.DBS = p.Params.DBS.Debug()
+	}
 
 	//variables
 	var (
 		offset = 0
 	)
 	if page == 0 {
-		p.Page = 1
+		r.Page = 1
 	} else {
-		p.Page = page
+		r.Page = page
 	}
 
 	//get total records in table
 	ch := make(chan bool, 1)
 
 	go func() {
-		if err := p.Params.DBS.Model(listResult).Count(&p.Count).Error; err != nil {
+		if err := p.Params.DBS.Model(listResult).Count(&r.Count).Error; err != nil {
 			p.Log.Println(err)
 		}
 		ch <- true
@@ -89,19 +96,19 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (error) {
 	<-ch
 
 	//check correct count param.page
-	p.TotalPage = int(math.Ceil(float64(p.Count) / float64(p.Params.Limit)))
+	r.TotalPage = int(math.Ceil(float64(r.Count) / float64(p.Params.Limit)))
 
-	if p.TotalPage == 0 {
-		p.TotalPage = 1
+	if r.TotalPage == 0 {
+		r.TotalPage = 1
 	} else {
-		if p.Page > p.TotalPage {
-			return errors.New("wrong page, page > totalpage")
+		if r.Page > r.TotalPage {
+			return r, errors.New("wrong page, page > totalpage")
 		}
 	}
 
 	//make offset
-	if p.Page > 0 {
-		offset = (p.Page - 1) * p.Params.Limit
+	if r.Page > 0 {
+		offset = (r.Page - 1) * p.Params.Limit
 	}
 
 	//check filters sorts
@@ -113,38 +120,35 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (error) {
 
 	//get result
 	if err := p.Params.DBS.Limit(p.Params.Limit).Offset(offset).Find(listResult).Error; err != nil {
-		return err
+		return r, err
 	}
-	p.Records = listResult
+	r.Records = listResult
 
-	//htmlhelp
-	p.Help = &HTMLPaginate{}
-
-	if p.Page == 0 {
-		p.Help.Currentpage = "1"
-		p.Help.Predpage = "1"
+	if r.Page == 0 {
+		r.Help.Currentpage = "1"
+		r.Help.Predpage = "1"
 	} else {
-		p.Help.Currentpage = strconv.Itoa(p.Page)
+		r.Help.Currentpage = strconv.Itoa(r.Page)
 	}
-	if p.Page == 1 {
-		p.Help.Predpage = "1"
-	} else if p.Page > 1 {
-		p.Help.Predpage = strconv.Itoa(p.Page - 1)
-	}
-
-	if p.Page < p.TotalPage {
-		p.Help.Nextpage = strconv.Itoa(p.Page + 1)
-	} else if p.Page == p.TotalPage {
-		p.Help.Nextpage = strconv.Itoa(p.Page)
+	if r.Page == 1 {
+		r.Help.Predpage = "1"
+	} else if r.Page > 1 {
+		r.Help.Predpage = strconv.Itoa(r.Page - 1)
 	}
 
-	p.Help.Totalpage = strconv.Itoa(p.TotalPage)
-	for i := 1; i <= p.TotalPage; i++ {
-		p.Help.List = append(p.Help.List, strconv.Itoa(i))
+	if r.Page < r.TotalPage {
+		r.Help.Nextpage = strconv.Itoa(r.Page + 1)
+	} else if r.Page == r.TotalPage {
+		r.Help.Nextpage = strconv.Itoa(r.Page)
+	}
+
+	r.Help.Totalpage = strconv.Itoa(r.TotalPage)
+	for i := 1; i <= r.TotalPage; i++ {
+		r.Help.List = append(r.Help.List, strconv.Itoa(i))
 	}
 
 	//return result
-	return nil
+	return r, nil
 }
 func (p *Paginate) Reconfig(newconfig *Params) {
 	p.Params = newconfig
