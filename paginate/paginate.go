@@ -156,9 +156,6 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginat
 		}
 	}
 	//если больше
-	p.Log.Printf("Page: %v\nCountLinks: %v\nTotalPage: %v\n",
-		r.Page, r.CountLinks, r.TotalPage)
-
 	if r.CountLinks < r.TotalPage {
 		if r.Page+r.CountLinks == r.TotalPage {
 			for x := r.Page; x < r.Page+r.CountLinks; x++ {
