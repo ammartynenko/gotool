@@ -162,7 +162,7 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginat
 	//range available pages for view
 	//если меньше
 	if r.CountLinks > r.TotalPage {
-		for x := 1; x < r.TotalPage; x++ {
+		for x := 1; x <= r.TotalPage; x++ {
 			r.Links = append(r.Links, x)
 			r.LinksStr = append(r.LinksStr, strconv.Itoa(x))
 		}
