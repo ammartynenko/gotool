@@ -157,24 +157,24 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginat
 	}
 	//если больше
 	p.Log.Printf("Page: %v\nCountLinks: %v\nTotalPage: %v\n",
-		page, r.CountLinks, r.TotalPage)
-	
+		r.Page, r.CountLinks, r.TotalPage)
+
 	if r.CountLinks < r.TotalPage {
-		if page+r.CountLinks == r.TotalPage {
-			for x := page; x < page+r.CountLinks; x++ {
+		if r.Page+r.CountLinks == r.TotalPage {
+			for x := r.Page; x < r.Page+r.CountLinks; x++ {
 				r.Links = append(r.Links, x)
 				r.LinksStr = append(r.LinksStr, strconv.Itoa(x))
 			}
 		}
 
-		if page+r.CountLinks < r.TotalPage {
-			for x := page; x < page+r.CountLinks; x++ {
+		if r.Page+r.CountLinks < r.TotalPage {
+			for x := r.Page; x < r.Page+r.CountLinks; x++ {
 				r.Links = append(r.Links, x)
 				r.LinksStr = append(r.LinksStr, strconv.Itoa(x))
 			}
 		}
 
-		if page+r.CountLinks > r.TotalPage {
+		if r.Page+r.CountLinks > r.TotalPage {
 			for x := (r.TotalPage - r.CountLinks) + 1; x <= (r.TotalPage-r.CountLinks)+r.CountLinks; x ++ {
 				r.Links = append(r.Links, x)
 				r.LinksStr = append(r.LinksStr, strconv.Itoa(x))
