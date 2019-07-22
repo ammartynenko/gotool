@@ -147,29 +147,43 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginat
 		r.Help.List = append(r.Help.List, strconv.Itoa(i))
 	}
 
+
+	////debug testing
+	//if r.CountLinks >= r.TotalPage {
+	//	for x:=1; x < r.TotalPage; x ++ {
+	//		r.Links = append(r.Links, x)
+	//		r.LinksStr = append(r.LinksStr, strconv.Itoa(x))
+	//	}
+	//}
+	//if r.CountLinks < r.TotalPage {
+	//	r.LinksStr = r.Help.List[r.TotalPage - p.Params.CountLinks:]
+	//}
+
 	//range available pages for view
+	//если меньше
 	if r.CountLinks > r.TotalPage {
-		for x := 1; x < r.TotalPage; x++ {
+		for x := 1; x <= r.TotalPage; x++ {
 			r.Links = append(r.Links, x)
 			r.LinksStr = append(r.LinksStr, strconv.Itoa(x))
 		}
 	}
+	//если больше
 	if r.CountLinks < r.TotalPage {
-		if page+r.CountLinks == r.TotalPage {
-			for x := page; x < page+r.CountLinks; x++ {
+		if r.Page+r.CountLinks == r.TotalPage {
+			for x := r.Page; x < r.Page+r.CountLinks; x++ {
 				r.Links = append(r.Links, x)
 				r.LinksStr = append(r.LinksStr, strconv.Itoa(x))
 			}
 		}
 
-		if page+r.CountLinks < r.TotalPage {
-			for x := page; x < page+r.CountLinks; x++ {
+		if r.Page+r.CountLinks < r.TotalPage {
+			for x := r.Page; x < r.Page+r.CountLinks; x++ {
 				r.Links = append(r.Links, x)
 				r.LinksStr = append(r.LinksStr, strconv.Itoa(x))
 			}
 		}
 
-		if page+r.CountLinks > r.TotalPage {
+		if r.Page+r.CountLinks > r.TotalPage {
 			for x := (r.TotalPage - r.CountLinks) + 1; x <= (r.TotalPage-r.CountLinks)+r.CountLinks; x ++ {
 				r.Links = append(r.Links, x)
 				r.LinksStr = append(r.LinksStr, strconv.Itoa(x))
