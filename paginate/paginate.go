@@ -4,12 +4,12 @@
 package paginate
 
 import (
-	"github.com/jinzhu/gorm"
-	"log"
-	"os"
-	"io"
-	"math"
 	"errors"
+	"github.com/jinzhu/gorm"
+	"io"
+	"log"
+	"math"
+	"os"
 	"strconv"
 )
 
@@ -33,7 +33,6 @@ type HTMLPaginate struct {
 	Predpage    string
 	Nextpage    string
 	List        []string //количество элементов в пагинации
-
 }
 
 type ResultPaginate struct {
@@ -147,7 +146,6 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginat
 		r.Help.List = append(r.Help.List, strconv.Itoa(i))
 	}
 
-
 	////debug testing
 	//if r.CountLinks >= r.TotalPage {
 	//	for x:=1; x < r.TotalPage; x ++ {
@@ -184,7 +182,7 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginat
 		}
 
 		if r.Page+r.CountLinks > r.TotalPage {
-			for x := (r.TotalPage - r.CountLinks) + 1; x <= (r.TotalPage-r.CountLinks)+r.CountLinks; x ++ {
+			for x := (r.TotalPage - r.CountLinks) + 1; x <= (r.TotalPage-r.CountLinks)+r.CountLinks; x++ {
 				r.Links = append(r.Links, x)
 				r.LinksStr = append(r.LinksStr, strconv.Itoa(x))
 			}
