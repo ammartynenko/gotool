@@ -24,7 +24,7 @@ type Params struct {
 	DBS        *gorm.DB
 	DebugQuery bool
 	SortTypes  []string
-	LogOut     *io.Writer
+	LogOut     *log.Logger
 	CountLinks int
 }
 type HTMLPaginate struct {
