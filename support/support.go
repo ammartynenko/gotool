@@ -1,19 +1,22 @@
 package support
 
 import (
-	"time"
 	"crypto/md5"
-	"net/http"
+	"crypto/sha1"
+	"encoding/base64"
 	"fmt"
+	"net/http"
+	"time"
 )
 
-type Support struct {}
+type Support struct{}
 
 func NewSupport() *Support {
 	return new(Support)
 }
+
 //создание кукиса
-func (s *Support) NewCook(cookName string, salt string, r *http.Request) (http.Cookie) {
+func (s *Support) NewCook(cookName string, salt string, r *http.Request) http.Cookie {
 	cook := http.Cookie{}
 	cook.Name = cookName
 	cook.Value = s.CookGenerate(salt)
@@ -21,8 +24,15 @@ func (s *Support) NewCook(cookName string, salt string, r *http.Request) (http.C
 	cook.Path = "/"
 	return cook
 }
+
 //генерация нового значения для кукиса
 func (s *Support) CookGenerate(salt string) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(time.Now().String()+salt)))
 }
 
+//генерация hash-sha из байтовой последовательности
+func (s *Support) HashSHA(b []byte) string {
+	h := sha1.New()
+	h.Write(b)
+	return base64.URLEncoding.EncodeToString(h.Sum(nil))
+}
