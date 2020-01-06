@@ -4,12 +4,12 @@
 package paginate
 
 import (
+	"errors"
+	//_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"log"
-	"os"
-	"io"
 	"math"
-	"errors"
+	"os"
 	"strconv"
 )
 
@@ -24,7 +24,7 @@ type Params struct {
 	DBS        *gorm.DB
 	DebugQuery bool
 	SortTypes  []string
-	LogOut     *io.Writer
+	LogOut     *log.Logger
 	CountLinks int
 }
 type HTMLPaginate struct {
@@ -33,7 +33,6 @@ type HTMLPaginate struct {
 	Predpage    string
 	Nextpage    string
 	List        []string //количество элементов в пагинации
-
 }
 
 type ResultPaginate struct {
@@ -53,7 +52,7 @@ func NewPaginate(p *Params) (*Paginate) {
 	if p.LogOut == nil {
 		ppp.Log = log.New(os.Stdout, prefix, log.Lshortfile|log.Ldate|log.Ltime)
 	} else {
-		ppp.Log = log.New(*p.LogOut, prefix, log.Lshortfile|log.Ldate|log.Ltime)
+		ppp.Log = p.LogOut
 	}
 	//config
 	ppp.Params = p
@@ -61,6 +60,59 @@ func NewPaginate(p *Params) (*Paginate) {
 	//return instance
 	return &ppp
 }
+//
+////=========================================
+//// new refactoring make paginate result
+////in args: count records, limit,
+////=========================================
+//type ParamsNew struct {
+//	CurrentPage int
+//	TotalCount  int
+//	LimitCount  int
+//	DBS         *sql.DB
+//}
+//
+//func (p *Paginate) MakePaginate2(par ParamsNew) (ResultPaginate, error) {
+//	//result instance
+//	r := ResultPaginate{
+//		Help:       &HTMLPaginate{},
+//		CountLinks: p.Params.CountLinks,
+//	}
+//	//list total pages
+//	r.TotalPage = int(math.Ceil(float64(par.TotalCount) / float64(par.LimitCount)))
+//	p.Log.Printf("TotalPage: %v\n", r.TotalPage)
+//	if r.TotalPage == 0 {
+//		r.TotalPage = 1
+//	} else {
+//		if r.Page > r.TotalPage {
+//			return r, errors.New("wrong page, page > totalpage")
+//		}
+//	}
+//	//
+//	end, start := 0, 0
+//
+//	//base loop
+//	for i:=1; i <= totalPage; i ++ {
+//		//first condition
+//		if i == 0  {
+//			start = 0
+//		} else {
+//			start  = end
+//		}
+//		//two condition
+//		if i * limit > len(s) {
+//			end = len(s)
+//		} else {
+//			end  = i * limit
+//		}
+//		//assign page + slice with page
+//		fmt.Printf("%d : %d\n", start, end)
+//		stocker[i] = s[start:end]
+//	}
+//
+//	return r, nil
+//}
+//
 func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginate, error) {
 	//result instance
 	r := ResultPaginate{
@@ -147,7 +199,6 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginat
 		r.Help.List = append(r.Help.List, strconv.Itoa(i))
 	}
 
-
 	////debug testing
 	//if r.CountLinks >= r.TotalPage {
 	//	for x:=1; x < r.TotalPage; x ++ {
@@ -184,7 +235,7 @@ func (p *Paginate) MakePaginate(page int, listResult interface{}) (ResultPaginat
 		}
 
 		if r.Page+r.CountLinks > r.TotalPage {
-			for x := (r.TotalPage - r.CountLinks) + 1; x <= (r.TotalPage-r.CountLinks)+r.CountLinks; x ++ {
+			for x := (r.TotalPage - r.CountLinks) + 1; x <= (r.TotalPage-r.CountLinks)+r.CountLinks; x++ {
 				r.Links = append(r.Links, x)
 				r.LinksStr = append(r.LinksStr, strconv.Itoa(x))
 			}
