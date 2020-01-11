@@ -10,9 +10,9 @@ import (
 )
 
 type ToolLogger struct {
-	fileLog *os.File
-	sysLog  *syslog.Writer
-	lg      *log.Logger
+	Filelog *os.File
+	Syslog  *syslog.Writer
+	Lg      *log.Logger
 }
 type ToolLoggerConfig struct {
 	FileLog  string
@@ -63,7 +63,7 @@ func NewToolLogger(cfg ToolLoggerConfig) (*ToolLogger, error) {
 		case errors.Is(err, os.ErrExist):
 			return nil, os.ErrExist
 		}
-		t.fileLog = f
+		t.Filelog = f
 	}
 	//syslog section
 	if cfg.SyslogIO != nil {
@@ -73,7 +73,7 @@ func NewToolLogger(cfg ToolLoggerConfig) (*ToolLogger, error) {
 			if err != nil {
 				return t, err
 			}
-			t.sysLog = sl
+			t.Syslog = sl
 		}
 		//если локальный выключен использую сетевой если есть его конфигурация
 		if cfg.SyslogIO.LocalConnect == false && cfg.SyslogIO.NetConnect != nil {
@@ -82,26 +82,26 @@ func NewToolLogger(cfg ToolLoggerConfig) (*ToolLogger, error) {
 			if err != nil {
 				return t, err
 			}
-			t.sysLog = sl
+			t.Syslog = sl
 		}
 	}
 	//обычный os.stdout
 	if cfg.LogCfg == nil {
 		return t, errorLogConfig
 	}
-	t.lg = log.New(cfg.LogCfg.Out, cfg.LogCfg.Prefix, cfg.LogCfg.LoggerBitmap)
+	t.Lg = log.New(cfg.LogCfg.Out, cfg.LogCfg.Prefix, cfg.LogCfg.LoggerBitmap)
 	return t, nil
 }
 func (t *ToolLogger) puts(prefix, msg string) {
 	concat := strings.Join([]string{prefix, msg}, " ")
-	if t.lg != nil {
-		t.lg.Print(concat)
+	if t.Lg != nil {
+		t.Lg.Print(concat)
 	}
-	if t.sysLog != nil {
-		_ = t.sysLog.Info(concat)
+	if t.Syslog != nil {
+		_ = t.Syslog.Info(concat)
 	}
-	if t.fileLog != nil {
-		_, _ = t.fileLog.WriteString(concat)
+	if t.Filelog != nil {
+		_, _ = t.Filelog.WriteString(concat)
 	}
 }
 
