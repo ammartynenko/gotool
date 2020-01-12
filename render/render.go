@@ -6,27 +6,32 @@
 package render
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"html/template"
 	"io"
-	"fmt"
-	"strings"
-	"net/http"
-	"sync"
-	"bytes"
-	"time"
-	"math/rand"
-	"os"
 	"io/ioutil"
-	"reflect"
-	"encoding/json"
 	"log"
+	"math/rand"
+	"net/http"
+	"os"
+	"reflect"
+	"strings"
+	"sync"
+	"time"
 )
 
 const (
 	PREFIXLOGGER              = "[gorender] "
 	ERROR_HTTPMETHODNOTACCEPT = "http method not allowed "
 	ERROR_READTEMPLATES       = "%s"
+	ERROR_WRITETEMPLATES      = "%s"
 	ERROR_READ_TXTFILE        = "%s"
+	ERROR_WRONGTEMPLATES      = "wrong output templates %T %v\n"
+	ERROR_EXECUTETEMPLATE     = "wrong execute template %v\n"
+	ERROR_WRONGIOWRITTER      = "FATAL - WRONG io.WRITTER\n"
+	ERROR_JSON                = "ERROR JSON %s\n"
 	//---------------------------------------------------------------------------
 	//  CONST:HTTP-MEDIATYPES
 	//---------------------------------------------------------------------------
@@ -97,22 +102,43 @@ var (
 		"jsonconvert": jSONconvert,
 	}
 )
+
 //---------------------------------------------------------------------------
 //  определение типа рендера
 //---------------------------------------------------------------------------
 type (
 	Render struct {
 		sync.RWMutex
-		Temp       *template.Template
-		Filters    template.FuncMap
-		Debug      bool
-		Path       string
-		logger     *log.Logger
-		DebugFatal bool //вываливать в log.Fatal при ошибка рендера шаблонов/парсинга директории с шаблонами, по умолчанию false
+		Temp            *template.Template
+		Filters         template.FuncMap
+		Debug           bool
+		Path            string
+		logger          *log.Logger
+		Lg              io.Writer
+		DebugFatal      bool //вываливать в log.Fatal при ошибка рендера шаблонов/парсинга директории с шаблонами, по умолчанию false
+		logwriterEnable bool
 	}
 )
 
-//создание нового инстанса
+//добавочный для гибкости по логированию
+func NewRenderL(path string, debug bool, logger io.Writer, debugFatal bool) *Render {
+	sf := &Render{}
+	defer sf.catcherPanic()
+	sf.Filters = template.FuncMap{}
+	sf.AddFilters(defaultFilters)
+	sf.Path = path
+	sf.Debug = debug
+	sf.DebugFatal = debugFatal
+	if _, valid := logger.(io.Writer); valid {
+		sf.Lg = logger
+	} else {
+		log.Fatal(ERROR_WRONGIOWRITTER)
+	}
+	sf.logwriterEnable = true
+	return sf
+}
+
+//создание нового инстанса // сохраняю в целях совместимости
 func NewRender(path string, debug bool, logger *log.Logger, debugFatal bool) *Render {
 	sf := &Render{}
 	defer sf.catcherPanic()
@@ -121,6 +147,7 @@ func NewRender(path string, debug bool, logger *log.Logger, debugFatal bool) *Re
 	sf.Path = path
 	sf.Debug = debug
 	sf.DebugFatal = debugFatal
+	sf.logwriterEnable = false
 	if logger != nil {
 		sf.logger = logger
 	} else {
@@ -139,7 +166,13 @@ func (s *Render) ReloadTemplate() {
 
 //перегружает отдельный блок/шаблон для обновления данных
 func (s *Render) ExecuteTemplate(name string, data interface{}, w http.ResponseWriter) {
-	s.Temp.ExecuteTemplate(w, name, data)
+	if err := s.Temp.ExecuteTemplate(w, name, data); err != nil {
+		if s.logwriterEnable {
+			_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_EXECUTETEMPLATE, err.Error())))
+		} else {
+			s.logger.Printf(fmt.Sprintf(ERROR_EXECUTETEMPLATE, err.Error()))
+		}
+	}
 }
 
 //показ указанного шаблона, с указанием data-контейнера, и интерфейса вывода
@@ -150,27 +183,53 @@ func (s *Render) Render(name string, data interface{}, w interface{}) (err error
 	}
 	buf := new(bytes.Buffer)
 	if err = s.Temp.ExecuteTemplate(buf, name, data); err != nil {
-		s.logger.Printf(fmt.Sprintf(ERROR_READTEMPLATES, err.Error()))
+		if s.logwriterEnable {
+			_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_READTEMPLATES, err.Error())))
+		} else {
+			s.logger.Printf(fmt.Sprintf(ERROR_READTEMPLATES, err.Error()))
+		}
 		if s.DebugFatal {
-			s.logger.Fatal(err)
+			if s.logwriterEnable {
+				_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_READTEMPLATES, err.Error())))
+			} else {
+				s.logger.Printf(fmt.Sprintf(ERROR_READTEMPLATES, err.Error()))
+			}
+			log.Fatal(err)
 		}
 		return
 	}
-	switch t := w.(type) {
+	switch w.(type) {
 	case http.ResponseWriter:
 		resp := w.(http.ResponseWriter)
 		resp.Header().Add(ContentType, TextHTMLCharsetUTF8)
 		resp.WriteHeader(http.StatusOK)
-		resp.Write(s.HTMLTrims(buf.Bytes()))
+		if _, err := resp.Write(s.HTMLTrims(buf.Bytes())); err != nil {
+			if s.logwriterEnable {
+				_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_WRITETEMPLATES, err.Error())))
+			} else {
+				s.logger.Printf(fmt.Sprintf(ERROR_WRITETEMPLATES, err.Error()))
+			}
+			return err
+		}
 	case *os.File:
-		w.(*os.File).Write(buf.Bytes())
+		if _, err = w.(*os.File).Write(buf.Bytes()); err != nil {
+			if s.logwriterEnable {
+				_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_WRITETEMPLATES, err.Error())))
+			} else {
+				s.logger.Printf(fmt.Sprintf(ERROR_WRITETEMPLATES, err.Error()))
+			}
+			return err
+		}
 	default:
-		s.logger.Printf(fmt.Sprintf("wrong output interface %T", t, err.Error()))
+		if s.logwriterEnable {
+			_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_WRONGTEMPLATES, nil, nil)))
+		} else {
+			s.logger.Printf(fmt.Sprintf(ERROR_WRONGTEMPLATES, nil, nil))
+		}
 		if s.DebugFatal {
-			s.logger.Fatal(err)
+			log.Fatal(err)
 		}
 	}
-
 	return
 }
 
@@ -182,24 +241,46 @@ func (s *Render) RenderCode(httpCode int, name string, data interface{}, w inter
 	}
 	buf := new(bytes.Buffer)
 	if err = s.Temp.ExecuteTemplate(buf, name, data); err != nil {
-		s.logger.Printf(fmt.Sprintf(ERROR_READTEMPLATES, err.Error()))
-		if s.DebugFatal {
-			s.logger.Fatal(err)
+		if s.logwriterEnable {
+			_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_EXECUTETEMPLATE, err.Error())))
+		} else {
+			s.logger.Printf(fmt.Sprintf(ERROR_EXECUTETEMPLATE, err.Error()))
 		}
-		return
+		if s.DebugFatal {
+			log.Fatal(err)
+		}
+		return err
 	}
-	switch t := w.(type) {
+	switch w.(type) {
 	case http.ResponseWriter:
 		resp := w.(http.ResponseWriter)
 		resp.Header().Add(ContentType, TextHTMLCharsetUTF8)
 		resp.WriteHeader(httpCode)
-		resp.Write(s.HTMLTrims(buf.Bytes()))
+		if _, err := resp.Write(s.HTMLTrims(buf.Bytes())); err != nil {
+			if s.logwriterEnable {
+				_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_WRITETEMPLATES, err.Error())))
+			} else {
+				s.logger.Printf(fmt.Sprintf(ERROR_WRITETEMPLATES, err.Error()))
+			}
+			return err
+		}
 	case *os.File:
-		w.(*os.File).Write(buf.Bytes())
+		if _, err = w.(*os.File).Write(buf.Bytes()); err != nil {
+			if s.logwriterEnable {
+				_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_WRITETEMPLATES, err.Error())))
+			} else {
+				s.logger.Printf(fmt.Sprintf(ERROR_WRITETEMPLATES, err.Error()))
+			}
+			return err
+		}
 	default:
-		s.logger.Printf(fmt.Sprintf("wrong output interface %T", t, err.Error()))
+		if s.logwriterEnable {
+			_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_WRONGTEMPLATES, nil, nil)))
+		} else {
+			s.logger.Printf(fmt.Sprintf(ERROR_WRONGTEMPLATES, nil, nil))
+		}
 		if s.DebugFatal {
-			s.logger.Fatal(err)
+			log.Fatal(err)
 		}
 	}
 	return
@@ -209,35 +290,62 @@ func (s *Render) RenderTxt(httpCode int, name string, w interface{}) (err error)
 	//read txt file
 	file, err := os.Open(name)
 	if err != nil {
-		s.logger.Printf(ERROR_READ_TXTFILE, err.Error())
+		if s.logwriterEnable {
+			_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_READ_TXTFILE, err.Error())))
+		} else {
+			s.logger.Printf(ERROR_READ_TXTFILE, err.Error())
+		}
+
 		if s.DebugFatal {
-			s.logger.Fatal(err)
+			log.Fatal(err)
 		}
 		return err
 	}
 	outFile, err := ioutil.ReadAll(file)
 	if err != nil {
-		s.logger.Printf(ERROR_READ_TXTFILE, err.Error())
+		if s.logwriterEnable {
+			_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_READ_TXTFILE, err.Error())))
+		} else {
+			s.logger.Printf(ERROR_READ_TXTFILE, err.Error())
+		}
+
 		if s.DebugFatal {
-			s.logger.Fatal(err)
+			log.Fatal(err)
 		}
 		return err
 	}
-	switch t := w.(type) {
+	switch w.(type) {
 	case http.ResponseWriter:
 		resp := w.(http.ResponseWriter)
 		resp.Header().Add(ContentType, TextPlain)
 		resp.WriteHeader(httpCode)
-		resp.Write(outFile)
+		if _, err = resp.Write(outFile); err != nil {
+			if s.logwriterEnable {
+				_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_WRITETEMPLATES, err.Error())))
+			} else {
+				s.logger.Printf(fmt.Sprintf(ERROR_WRITETEMPLATES, err.Error()))
+			}
+			return err
+		}
 	case *os.File:
-		w.(*os.File).Write(outFile)
+		if _, err = w.(*os.File).Write(outFile); err != nil {
+			if s.logwriterEnable {
+				_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_WRITETEMPLATES, err.Error())))
+			} else {
+				s.logger.Printf(fmt.Sprintf(ERROR_WRITETEMPLATES, err.Error()))
+			}
+			return err
+		}
 	default:
-		s.logger.Printf(fmt.Sprintf("wrong output interface %T", t, err.Error()))
+		if s.logwriterEnable {
+			_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_WRONGTEMPLATES, nil, nil)))
+		} else {
+			s.logger.Printf(fmt.Sprintf(ERROR_WRONGTEMPLATES, nil, nil))
+		}
 		if s.DebugFatal {
-			s.logger.Fatal(err)
+			log.Fatal(err)
 		}
 	}
-
 	return
 }
 
@@ -245,10 +353,17 @@ func (s *Render) RenderTxt(httpCode int, name string, w interface{}) (err error)
 //  JSON
 //---------------------------------------------------------------------------
 //записывает json(byte format) в responseWriter
-func (s *Render) JSONB(httpcode int, b []byte, w http.ResponseWriter) (error) {
+func (s *Render) JSONB(httpcode int, b []byte, w http.ResponseWriter) error {
 	w.Header().Set(ContentType, ApplicationJavaScriptCharsetUTF8)
 	w.WriteHeader(httpcode)
-	w.Write(b)
+	if _, err := w.Write(b); err != nil {
+		if s.logwriterEnable {
+			_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_JSON, err.Error())))
+		} else {
+			s.logger.Printf(fmt.Sprintf(ERROR_JSON, err.Error()))
+		}
+		return err
+	}
 	return nil
 }
 
@@ -256,6 +371,11 @@ func (s *Render) JSONB(httpcode int, b []byte, w http.ResponseWriter) (error) {
 func (s *Render) JSON(code int, answer interface{}, w http.ResponseWriter) (err error) {
 	b, err := json.Marshal(answer)
 	if err != nil {
+		if s.logwriterEnable {
+			_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_JSON, err.Error())))
+		} else {
+			s.logger.Printf(fmt.Sprintf(ERROR_JSON, err.Error()))
+		}
 		return err
 	}
 	return s.JSONB(code, b, w)
@@ -265,7 +385,11 @@ func (s *Render) JSON(code int, answer interface{}, w http.ResponseWriter) (err 
 func (s *Render) catcherPanic() {
 	msgPanic := recover()
 	if msgPanic != nil && s.logger != nil {
-		s.logger.Printf("[ERROR TEMPLATE] %v", msgPanic)
+		if s.logwriterEnable {
+			_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_EXECUTETEMPLATE, msgPanic)))
+		} else {
+			s.logger.Printf(ERROR_EXECUTETEMPLATE, msgPanic)
+		}
 		if s.DebugFatal {
 			s.logger.Fatal(msgPanic)
 		}
@@ -286,7 +410,11 @@ func (s *Render) HTMLTrims(body []byte) []byte {
 //отображение всех функций-фильтров, доступных в шаблонах
 func (s *Render) ShowFiltersFuncs(out io.Writer) {
 	for name, f := range s.Filters {
-		s.logger.Printf("`%s`:`%v`\n", name, f)
+		if s.logwriterEnable {
+			_, _ = s.Lg.Write([]byte(fmt.Sprintf("`%s`:`%v`\n", name, f)))
+		} else {
+			s.logger.Printf("`%s`:`%v`\n", name, f)
+		}
 	}
 }
 
@@ -353,11 +481,11 @@ func mapIn(value interface{}, stock interface{}) bool {
 	}
 	return false
 }
-func makeMap(value ...string) ([]string) {
+func makeMap(value ...string) []string {
 	return value
 }
 
-func andList(listValues ...interface{}) (bool) {
+func andList(listValues ...interface{}) bool {
 	for _, v := range listValues {
 		if v == nil {
 			return false
