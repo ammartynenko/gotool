@@ -115,3 +115,7 @@ func (t *ToolLogger) Warning(msg string) {
 func (t *ToolLogger) Error(msg string) {
 	t.puts(prefixError, msg)
 }
+func (t *ToolLogger) Fatal(msg string) {
+	t.puts(prefixError, msg)
+	os.Exit(1)
+}
