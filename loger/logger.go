@@ -95,7 +95,7 @@ func NewToolLogger(cfg ToolLoggerConfig) (*ToolLogger, error) {
 func (t *ToolLogger) puts(prefix, msg string) {
 	concat := strings.Join([]string{prefix, msg}, " ")
 	if t.Lg != nil {
-		t.Lg.Print(concat)
+		t.Lg.Printf("%s\n", concat)
 	}
 	if t.Syslog != nil {
 		_ = t.Syslog.Info(concat)
