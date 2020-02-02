@@ -24,14 +24,14 @@ import (
 
 const (
 	PREFIXLOGGER              = "[gorender] "
-	ERROR_HTTPMETHODNOTACCEPT = "http method not allowed "
-	ERROR_READTEMPLATES       = "%s"
-	ERROR_WRITETEMPLATES      = "%s"
-	ERROR_READ_TXTFILE        = "%s"
-	ERROR_WRONGTEMPLATES      = "wrong output templates %T %v\n"
-	ERROR_EXECUTETEMPLATE     = "wrong execute template %v\n"
-	ERROR_WRONGIOWRITTER      = "FATAL - WRONG io.WRITTER\n"
-	ERROR_JSON                = "ERROR JSON %s\n"
+	ERROR_HTTPMETHODNOTACCEPT = "[GOTOOL-RENDER] http method not allowed "
+	ERROR_READTEMPLATES       = "[GOTOOL-RENDER] %s"
+	ERROR_WRITETEMPLATES      = "[GOTOOL-RENDER] %s"
+	ERROR_READ_TXTFILE        = "[GOTOOL-RENDER] %s"
+	ERROR_WRONGTEMPLATES      = "[GOTOOL-RENDER] wrong output templates %T %v\n"
+	ERROR_EXECUTETEMPLATE     = "[GOTOOL-RENDER] wrong execute template %v\n"
+	ERROR_WRONGIOWRITTER      = "[GOTOOL-RENDER] FATAL - WRONG io.WRITTER\n"
+	ERROR_JSON                = "[GOTOOL-RENDER] ERROR JSON %s\n"
 	//---------------------------------------------------------------------------
 	//  CONST:HTTP-MEDIATYPES
 	//---------------------------------------------------------------------------

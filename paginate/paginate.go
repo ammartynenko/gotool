@@ -35,6 +35,15 @@ type HTMLPaginate struct {
 	List        []string //количество элементов в пагинации
 }
 
+//----------------------------------------------------------------------
+// результат пагинации при введенных критериях
+// TotalPage = всего страниц при критериях разбивки
+// Records = записи текущей страницы
+// Page = текущая(заданная в аргументах) страница
+// Count = количество записей всего
+// CountLinks = количествло ссылок на условные страницы
+//
+//-----------------------------------------------------------------------
 type ResultPaginate struct {
 	Help       *HTMLPaginate
 	TotalPage  int
@@ -46,7 +55,7 @@ type ResultPaginate struct {
 	LinksStr   []string
 }
 
-func NewPaginate(p *Params) (*Paginate) {
+func NewPaginate(p *Params) *Paginate {
 	var ppp Paginate
 	//logger
 	if p.LogOut == nil {
@@ -60,6 +69,7 @@ func NewPaginate(p *Params) (*Paginate) {
 	//return instance
 	return &ppp
 }
+
 //
 ////=========================================
 //// new refactoring make paginate result
