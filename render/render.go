@@ -131,10 +131,12 @@ func NewRenderL(path string, debug bool, logger io.Writer, debugFatal bool) *Ren
 	sf.DebugFatal = debugFatal
 	if _, valid := logger.(io.Writer); valid {
 		sf.Lg = logger
+		sf.logwriterEnable = true
 	} else {
+		sf.logger = log.New(os.Stdout, PREFIXLOGGER, log.Ltime|log.Ldate|log.Lshortfile)
 		log.Fatal(ERROR_WRONGIOWRITTER)
+		sf.logwriterEnable = false
 	}
-	sf.logwriterEnable = true
 	return sf
 }
 
