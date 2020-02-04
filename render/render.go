@@ -167,6 +167,28 @@ func (s *Render) ReloadTemplate() {
 }
 
 //перегружает отдельный блок/шаблон для обновления данных
+func (s *Render) ExecuteTemplateIO(name string, data interface{}, w io.Writer) {
+	if err := s.Temp.ExecuteTemplate(w, name, data); err != nil {
+		if s.logwriterEnable {
+			_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_EXECUTETEMPLATE, err.Error())))
+		} else {
+			s.logger.Printf(fmt.Sprintf(ERROR_EXECUTETEMPLATE, err.Error()))
+		}
+	}
+}
+
+//перегружает отдельный блок/шаблон для обновления данных
+func (s *Render) ExecuteTemplateIO(name string, data interface{}, w io.Writer) {
+	if err := s.Temp.ExecuteTemplate(w, name, data); err != nil {
+		if s.logwriterEnable {
+			_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_EXECUTETEMPLATE, err.Error())))
+		} else {
+			s.logger.Printf(fmt.Sprintf(ERROR_EXECUTETEMPLATE, err.Error()))
+		}
+	}
+}
+
+//перегружает отдельный блок/шаблон для обновления данных
 func (s *Render) ExecuteTemplate(name string, data interface{}, w http.ResponseWriter) {
 	if err := s.Temp.ExecuteTemplate(w, name, data); err != nil {
 		if s.logwriterEnable {
