@@ -137,6 +137,7 @@ func NewRenderL(path string, debug bool, logger io.Writer, debugFatal bool) *Ren
 		log.Printf(ERROR_WRONGIOWRITTER)
 		sf.logwriterEnable = false
 	}
+	sf.ReloadTemplate()
 	return sf
 }
 
@@ -155,6 +156,7 @@ func NewRender(path string, debug bool, logger *log.Logger, debugFatal bool) *Re
 	} else {
 		sf.logger = log.New(os.Stdout, PREFIXLOGGER, log.Ltime|log.Ldate|log.Lshortfile)
 	}
+	sf.ReloadTemplate()
 	return sf
 }
 
@@ -184,7 +186,9 @@ func (s *Render) ExecuteTemplate(name string, data interface{}, w http.ResponseW
 		if s.logwriterEnable {
 			_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_EXECUTETEMPLATE, err.Error())))
 		} else {
-			s.logger.Printf(fmt.Sprintf(ERROR_EXECUTETEMPLATE, err.Error()))
+			if s.logger != nil {
+				s.logger.Printf(fmt.Sprintf(ERROR_EXECUTETEMPLATE, err.Error()))
+			}
 		}
 	}
 }
