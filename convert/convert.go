@@ -208,9 +208,11 @@ func (m *Convert) DirectStringtoFloat64(v string) float64 {
 // DATA CONVERT
 //=========================================
 const (
-	HTML_UTC  = "2006-01-02 15:04:05 -0700 MST"
-	HTML_DATA = "2006-01-02"
+	HTML_UTC     = "2006-01-02 15:04:05 -0700 MST"
+	HTML_DATA    = "2006-01-02"
+	HTML_RFC3339 = "2006-01-02T15:04"
 )
+
 
 //конвертация UTC в time. (html DATA из формы конвертируется этой функцией)
 //(FROM HTML)html.input(type=datetime-local) -> time.Time
@@ -222,6 +224,7 @@ func (m *Convert) StringUTCtoDate(o string) time.Time {
 	}
 	return t
 }
+
 //конвертация HTML.DATA в time.time
 //(FROM HTML) html.input(type=data) -> time.Time
 func (m *Convert) StringDATAtoTime(o string) time.Time {
@@ -231,6 +234,17 @@ func (m *Convert) StringDATAtoTime(o string) time.Time {
 	}
 	return t
 }
+//конвертация HTML.DATA в time.time
+//(FROM HTML:: RFC3389) html.input(type=datatime-local) -> time.Time
+func (m *Convert) StringDATA3389toTime(o string) time.Time {
+	t, err := time.Parse(HTML_RFC3339, o)
+	if err != nil {
+		m.logger.Fatal(err)
+	}
+	return t
+}
+
+
 //конвертация Time.time в HTML_DATA
 //(TO HTML) time.time -> html.input(type=data)
 func (m *Convert) TimeToDATA(o time.Time) string {
@@ -240,6 +254,17 @@ func (m *Convert) TimeToDATA(o time.Time) string {
 	}
 	return t.String()
 }
+
+//конвертация Time.time в HTML_RFC3389
+//(TO HTML) time.time -> html.input(type=datatime-local)
+func (m *Convert) TimeToDATARFC3389(o time.Time) string {
+	t, err := time.Parse(HTML_RFC3339, o.String())
+	if err != nil {
+		m.logger.Fatal(err)
+	}
+	return t.String()
+}
+
 //конвертация Time.time в HTML_DATA
 //(TO HTML) time.time -> html.input(type=datetime-local)
 func (m *Convert) TimeToDATA_UTC(o time.Time) string {
