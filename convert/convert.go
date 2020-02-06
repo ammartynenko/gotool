@@ -256,6 +256,11 @@ func (m *Convert) TimeToDATARFC3389(o time.Time) string {
 	return o.Format(HTML_RFC3339)
 }
 
+func (m *Convert) TimeToTimeDATA(o time.Time) time.Time {
+	tt := m.StringDATAtoTime(o.Format(HTML_DATA))
+	return tt
+}
+
 //конвертация Time.time в HTML_DATA
 //(TO HTML) time.time -> html.input(type=datetime-local)
 func (m *Convert) TimeToDATA_UTC(o time.Time) string {
