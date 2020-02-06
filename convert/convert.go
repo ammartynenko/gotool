@@ -258,11 +258,7 @@ func (m *Convert) TimeToDATA(o time.Time) string {
 //конвертация Time.time в HTML_RFC3389
 //(TO HTML) time.time -> html.input(type=datatime-local)
 func (m *Convert) TimeToDATARFC3389(o time.Time) string {
-	t, err := time.Parse(HTML_RFC3339, o.String())
-	if err != nil {
-		m.logger.Fatal(err)
-	}
-	return t.String()
+	return o.Format(HTML_RFC3339)
 }
 
 //конвертация Time.time в HTML_DATA
