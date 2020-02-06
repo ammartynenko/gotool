@@ -220,7 +220,7 @@ func (s *Render) Render(name string, data interface{}, w interface{}) (err error
 	case http.ResponseWriter:
 		resp := w.(http.ResponseWriter)
 		resp.Header().Add(ContentType, TextHTMLCharsetUTF8)
-		resp.WriteHeader(http.StatusOK)
+		//resp.WriteHeader(http.StatusOK)
 		if _, err := resp.Write(s.HTMLTrims(buf.Bytes())); err != nil {
 			if s.logwriterEnable {
 				_, _ = s.Lg.Write([]byte(fmt.Sprintf(ERROR_WRITETEMPLATES, err.Error())))
