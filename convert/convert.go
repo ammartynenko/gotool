@@ -213,7 +213,6 @@ const (
 	HTML_RFC3339 = "2006-01-02T15:04"
 )
 
-
 //конвертация UTC в time. (html DATA из формы конвертируется этой функцией)
 //(FROM HTML)html.input(type=datetime-local) -> time.Time
 func (m *Convert) StringUTCtoDate(o string) time.Time {
@@ -234,6 +233,7 @@ func (m *Convert) StringDATAtoTime(o string) time.Time {
 	}
 	return t
 }
+
 //конвертация HTML.DATA в time.time
 //(FROM HTML:: RFC3389) html.input(type=datatime-local) -> time.Time
 func (m *Convert) StringDATA3389toTime(o string) time.Time {
@@ -244,15 +244,10 @@ func (m *Convert) StringDATA3389toTime(o string) time.Time {
 	return t
 }
 
-
 //конвертация Time.time в HTML_DATA
 //(TO HTML) time.time -> html.input(type=data)
 func (m *Convert) TimeToDATA(o time.Time) string {
-	t, err := time.Parse(HTML_DATA, o.String())
-	if err != nil {
-		m.logger.Fatal(err)
-	}
-	return t.String()
+	return o.Format(HTML_DATA)
 }
 
 //конвертация Time.time в HTML_RFC3389
@@ -264,11 +259,7 @@ func (m *Convert) TimeToDATARFC3389(o time.Time) string {
 //конвертация Time.time в HTML_DATA
 //(TO HTML) time.time -> html.input(type=datetime-local)
 func (m *Convert) TimeToDATA_UTC(o time.Time) string {
-	t, err := time.Parse(HTML_UTC, o.String())
-	if err != nil {
-		m.logger.Fatal(err)
-	}
-	return t.String()
+	return o.Format(HTML_UTC)
 }
 
 // конертация HTML даты в Unix формат
