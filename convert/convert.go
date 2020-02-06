@@ -5,16 +5,16 @@
 package convert
 
 import (
-	"log"
-	"time"
-	"reflect"
-	"math/rand"
-	"strconv"
-	"strings"
 	"fmt"
 	d "github.com/fiam/gounidecode/unidecode"
-	"path/filepath"
+	"log"
 	"math"
+	"math/rand"
+	"path/filepath"
+	"reflect"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type Convert struct {
@@ -55,16 +55,6 @@ func NewConverter(log *log.Logger) *Convert {
 	f.InValid = append(f.InValid, f.convert(33, 47)...)
 	f.Replacer = f.convert(32, 32)
 	return f
-}
-
-//конвертация UTC в time. (html DATA из формы конвертируется этой функцией)
-func (m *Convert) StringUTCtoDate(o string) time.Time {
-	layout := "2006-01-02 15:04:05 -0700 MST"
-	t, err := time.Parse(layout, o)
-	if err != nil {
-		m.logger.Fatal(err)
-	}
-	return t
 }
 
 //конвертация строки в целоцисленное значение 32 разрядное
@@ -214,10 +204,56 @@ func (m *Convert) DirectStringtoFloat64(v string) float64 {
 	}
 }
 
+//=========================================
+// DATA CONVERT
+//=========================================
+const (
+	HTML_UTC  = "2006-01-02 15:04:05 -0700 MST"
+	HTML_DATA = "2006-01-02"
+)
+
+//конвертация UTC в time. (html DATA из формы конвертируется этой функцией)
+//(FROM HTML)html.input(type=datetime-local) -> time.Time
+func (m *Convert) StringUTCtoDate(o string) time.Time {
+	//layout := "2006-01-02 15:04:05 -0700 MST"
+	t, err := time.Parse(HTML_UTC, o)
+	if err != nil {
+		m.logger.Fatal(err)
+	}
+	return t
+}
+//конвертация HTML.DATA в time.time
+//(FROM HTML) html.input(type=data) -> time.Time
+func (m *Convert) StringDATAtoTime(o string) time.Time {
+	t, err := time.Parse(HTML_DATA, o)
+	if err != nil {
+		m.logger.Fatal(err)
+	}
+	return t
+}
+//конвертация Time.time в HTML_DATA
+//(TO HTML) time.time -> html.input(type=data)
+func (m *Convert) TimeToDATA(o time.Time) string {
+	t, err := time.Parse(HTML_DATA, o.String())
+	if err != nil {
+		m.logger.Fatal(err)
+	}
+	return t.String()
+}
+//конвертация Time.time в HTML_DATA
+//(TO HTML) time.time -> html.input(type=datetime-local)
+func (m *Convert) TimeToDATA_UTC(o time.Time) string {
+	t, err := time.Parse(HTML_UTC, o.String())
+	if err != nil {
+		m.logger.Fatal(err)
+	}
+	return t.String()
+}
+
 // конертация HTML даты в Unix формат
 func (m *Convert) ConvertHTMLDatetoUnix(date string) (int64, error) {
 	if len(date) > 0 {
-		result, err := time.Parse("2006-01-02", date)
+		result, err := time.Parse(HTML_DATA, date)
 		if err == nil {
 			return result.Unix(), err
 		} else {
@@ -311,7 +347,7 @@ func (s *Convert) preCorrect(str string) string {
 //конвертация-транслитерация имени файла
 func (s *Convert) TransliterCyrFilename(filename string) string {
 	var extension = filepath.Ext(filename)
-	var name = filename[0:len(filename)-len(extension)]
+	var name = filename[0 : len(filename)-len(extension)]
 
 	name = s.preCorrect(name)
 	var result []string
