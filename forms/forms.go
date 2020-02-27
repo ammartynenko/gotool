@@ -268,12 +268,19 @@ func (g *Form) UpdateForm(form, source interface{}) {
 
 				switch vf.Kind() {
 				case reflect.Struct:
-					fmt.Printf("goforms] reflect.struct `%v` `%v` `%v` `%v`\n", vf.Kind(), vf.Interface(), vf.Kind().String(), tform.Name)
 					switch vf.Kind().String() {
 					case "time.Time":
+						HTML_UTC := "2006-01-02 15:04:05 -0700 MST"
+						HTML_RFC3339 := "2006-01-02T15:04"
 						result := vf.Interface().(time.Time)
-						stock.Value[tform.Name] = result
-						tformValue.Set(reflect.ValueOf(result))
+						rr, err := time.Parse(HTML_UTC, result.String())
+						if err != nil {
+							fmt.Printf("error format time: %v\n", err)
+						} else {
+							stock.Value[tform.Name] = rr
+							eu := rr.Format(HTML_RFC3339)
+							tformValue.Set(reflect.ValueOf(eu))
+						}
 					}
 				case reflect.String:
 					result := strings.TrimSpace(vf.Interface().(string))
