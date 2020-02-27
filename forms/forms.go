@@ -268,6 +268,7 @@ func (g *Form) UpdateForm(form, source interface{}) {
 
 				switch vf.Kind() {
 				case reflect.Struct:
+					fmt.Printf("goforms] reflect.struct `%v` `%v` `%v` `%v`\n", vf.Kind(), vf.Interface(), vf.Kind().String(), tform.Name)
 					switch vf.Kind().String() {
 					case "time.Time":
 						result := vf.Interface().(time.Time)
