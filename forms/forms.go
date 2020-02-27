@@ -1,12 +1,12 @@
 package forms
 
 import (
-	"strconv"
-	"reflect"
-	"strings"
 	"fmt"
 	"log"
 	"net/http"
+	"reflect"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -193,7 +193,7 @@ func (g *Form) InitForm(form interface{}) {
 	//должна быть структура, т.к. идет обработка формы, иначе вылет по фатальной ошибке
 	switch v.Kind() {
 	case reflect.Struct:
-		for x := 0; x < v.NumField(); x ++ {
+		for x := 0; x < v.NumField(); x++ {
 			//добавить дефолтные значения для полей формы
 			fu, found := g.FieldsForms[strings.ToLower(t.Field(x).Name)]
 			if found {
@@ -221,7 +221,7 @@ func (g *Form) LoadForm(form interface{}, r *http.Request) {
 	t, v, stock := g.checkedForm(form)
 	r.ParseForm()
 
-	for x := 0; x < v.NumField(); x ++ {
+	for x := 0; x < v.NumField(); x++ {
 		//f := reflect.Indirect(reflect.ValueOf(form)).Field(x)
 		//name := reflect.TypeOf(form).Elem().Field(x).Name
 		//ff := reflect.TypeOf(form).Elem().Field(x)
@@ -265,10 +265,15 @@ func (g *Form) UpdateForm(form, source interface{}) {
 			if tform.Type == tf.Type {
 				//получаю объект значение из формы по имени элемента
 				tformValue := v.FieldByName(tf.Name)
-				//fmt.Printf("[updateform] Form:[%v:%v] Source:[%v:%v] Source_interface:[%v]\n",
-				//	tform.Name, tform.Type, tf.Name, tf.Type, vf.Interface())
-				switch vf.Kind() {
 
+				switch vf.Kind() {
+				case reflect.Struct:
+					switch vf.Kind().String() {
+					case "time.Time":
+						result := vf.Interface().(time.Time)
+						stock.Value[tform.Name] = result
+						tformValue.Set(reflect.ValueOf(result))
+					}
 				case reflect.String:
 					result := strings.TrimSpace(vf.Interface().(string))
 					stock.Value[tform.Name] = result
@@ -400,7 +405,7 @@ func (g *Form) ValidateForm(form interface{}, r *http.Request) (status bool) {
 	var total int = v.NumField() - 1
 	var countValidate int = 0
 
-	for i := 0; i < v.NumField(); i ++ {
+	for i := 0; i < v.NumField(); i++ {
 
 		//если нет флага, проверка
 		if t.Field(i).Tag.Get("form") == "" {
@@ -424,7 +429,7 @@ func (g *Form) ValidateForm(form interface{}, r *http.Request) (status bool) {
 				} else {
 					stock.Error[t.Field(i).Name] = ErrorForm{}
 					stock.SuccessClass[t.Field(i).Name] = fu.SuccesClass
-					countValidate ++
+					countValidate++
 				}
 
 			case reflect.Int64, reflect.Int32, reflect.Int16, reflect.Int:
@@ -436,7 +441,7 @@ func (g *Form) ValidateForm(form interface{}, r *http.Request) (status bool) {
 				} else {
 					stock.Error[t.Field(i).Name] = ErrorForm{}
 					stock.SuccessClass[t.Field(i).Name] = fu.SuccesClass
-					countValidate ++
+					countValidate++
 				}
 
 			case reflect.Slice, reflect.Array:
@@ -452,7 +457,7 @@ func (g *Form) ValidateForm(form interface{}, r *http.Request) (status bool) {
 					} else {
 						stock.Error[t.Field(i).Name] = ErrorForm{}
 						stock.SuccessClass[t.Field(i).Name] = fu.SuccesClass
-						countValidate ++
+						countValidate++
 					}
 
 				case []int:
@@ -463,7 +468,7 @@ func (g *Form) ValidateForm(form interface{}, r *http.Request) (status bool) {
 					} else {
 						stock.Error[t.Field(i).Name] = ErrorForm{}
 						stock.SuccessClass[t.Field(i).Name] = fu.SuccesClass
-						countValidate ++
+						countValidate++
 					}
 
 				case []int64:
@@ -475,7 +480,7 @@ func (g *Form) ValidateForm(form interface{}, r *http.Request) (status bool) {
 					} else {
 						stock.Error[t.Field(i).Name] = ErrorForm{}
 						stock.SuccessClass[t.Field(i).Name] = fu.SuccesClass
-						countValidate ++
+						countValidate++
 					}
 
 				case []string:
@@ -486,7 +491,7 @@ func (g *Form) ValidateForm(form interface{}, r *http.Request) (status bool) {
 					} else {
 						stock.Error[t.Field(i).Name] = ErrorForm{}
 						stock.SuccessClass[t.Field(i).Name] = fu.SuccesClass
-						countValidate ++
+						countValidate++
 					}
 				}
 			case reflect.String:
@@ -500,7 +505,7 @@ func (g *Form) ValidateForm(form interface{}, r *http.Request) (status bool) {
 				} else {
 					stock.Error[t.Field(i).Name] = ErrorForm{}
 					stock.SuccessClass[t.Field(i).Name] = fu.SuccesClass
-					countValidate ++
+					countValidate++
 				}
 			case reflect.Bool:
 				//result := r.FormValue(t.Field(i).Name)
@@ -511,12 +516,12 @@ func (g *Form) ValidateForm(form interface{}, r *http.Request) (status bool) {
 				} else {
 					stock.Error[t.Field(i).Name] = ErrorForm{}
 					stock.SuccessClass[t.Field(i).Name] = fu.SuccesClass
-					countValidate ++
+					countValidate++
 				}
 			}
 		} else {
 			//флаг есть, вычитем из общего количества
-			total --
+			total--
 		}
 	}
 	//подведение итогов по валидности всей формы
