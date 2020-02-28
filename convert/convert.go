@@ -6,7 +6,7 @@ package convert
 
 import (
 	"fmt"
-	d 	"github.com/mozillazg/go-unidecode"
+	d "github.com/mozillazg/go-unidecode"
 	"log"
 	"math"
 	"math/rand"
@@ -42,7 +42,7 @@ func NewConverter(lg *log.Logger) *Convert {
 		stockFu: make(map[string]func()),
 	}
 	if lg == nil {
-		f.logger = log.New(os.Stdout, defConverter, log.Ltime | log.Ldate)
+		f.logger = log.New(os.Stdout, defConverter, log.Ltime|log.Ldate)
 	} else {
 		f.logger = lg
 	}
@@ -216,12 +216,75 @@ const (
 	HTML_UTC     = "2006-01-02 15:04:05 -0700 MST"
 	HTML_DATA    = "2006-01-02"
 	HTML_RFC3339 = "2006-01-02T15:04"
+	timeLayout   = "15:04"
+	dateLayout   = "2006-01-02"
+	formLayoout  = "2006-01-02 15:04"
 )
+
+//конвертация времени 2  базовых функции для цикла взаимодействия между базой данных - сервером и html форм
+//по формам - вводятся 2 формы date, time, на серверной части обрабатываюся данные, приводятся все к единому формату
+// time.time и экспортируем в базу данных в формате time.Unix int64 значение
+//обратный цикл такой же
+//функция принимает время в формате Unix и возвращает 2 строковых представления дата и время для
+//корректного отображения в input.date и input.time
+func (ms *Convert) UnixToForm(unixTime int64) (dataV string, timeV string) {
+	tt := time.Unix(unixTime, 0)
+	y, m, d := tt.Date()
+	month, day := "", ""
+	var (
+		formDataLess = "0%d"
+		formDataMore = "%d"
+		formTimeLess = "0%d"
+		formTimeMore = "%d"
+	)
+	//data:month
+	if m < 10 {
+		month = fmt.Sprintf(formDataLess, m)
+	} else {
+		month = fmt.Sprintf(formDataMore, m)
+	}
+	//data:day
+	if d < 10 {
+		day = fmt.Sprintf(formDataLess, d)
+	} else {
+		day = fmt.Sprintf(formDataMore, d)
+	}
+	dataV = fmt.Sprintf("%d-%s-%s", y, month, day)
+
+	//time
+	hour := ""
+	minute := ""
+	if tt.Hour() < 10 {
+		hour = fmt.Sprintf(formTimeLess, tt.Hour())
+	} else {
+		hour = fmt.Sprintf(formTimeMore, tt.Hour())
+	}
+	if tt.Minute() < 10 {
+		minute = fmt.Sprintf(formTimeLess, tt.Minute())
+	} else {
+		minute = fmt.Sprintf(formTimeMore, tt.Minute())
+	}
+	timeV = strings.Join([]string{hour, minute}, ":")
+	return
+}
+
+//вторая функция - конвертация данных из формы в unixtime
+func (ms *Convert) FormToUnix(dataV, timeV string) (unixTime int64) {
+
+	ntime, err := time.Parse(formLayoout, fmt.Sprintf("%v %v", dataV, timeV))
+	if err != nil {
+		ms.logger.Printf("[FormToUnix] [error] %v\n", err.Error())
+	} else {
+		unixTime = ntime.Unix()
+	}
+	return
+}
 
 //конвертация database=TimeStamp (HTML_UTC) в HTML-datetime-local(string)=HTML_RFC3339
 func (m *Convert) StringUTCtoHTML3339string(v string) string {
 	return m.StringUTCtoDate(v).Format(HTML_RFC3339)
 }
+
 //конвертация UTC в time. (html DATA из формы конвертируется этой функцией)
 //(FROM HTML)html.input(type=datetime-local) -> time.Time
 func (m *Convert) StringUTCtoDate(o string) time.Time {
