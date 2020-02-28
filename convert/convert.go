@@ -280,6 +280,10 @@ func (ms *Convert) FormToUnix(dataV, timeV string) (unixTime int64) {
 	}
 	return
 }
+//конвертация unix int64 в time.time
+func (ms *Convert) UnixToTime(unixTime int64) time.Time {
+	return time.Unix(unixTime, 0)
+}
 
 //конвертация database=TimeStamp (HTML_UTC) в HTML-datetime-local(string)=HTML_RFC3339
 func (m *Convert) StringUTCtoHTML3339string(v string) string {
@@ -296,6 +300,7 @@ func (m *Convert) StringUTCtoDate(o string) time.Time {
 	}
 	return t
 }
+
 
 //конвертация HTML.DATA в time.time
 //(FROM HTML) html.input(type=data) -> time.Time
