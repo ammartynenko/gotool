@@ -219,7 +219,7 @@ func (g *Form) InitForm(form interface{}) {
 func (g *Form) LoadForm(form interface{}, r *http.Request) {
 	//проверка формы
 	t, v, stock := g.checkedForm(form)
-	r.ParseForm()
+	_ = r.ParseForm()
 
 	for x := 0; x < v.NumField(); x++ {
 		//f := reflect.Indirect(reflect.ValueOf(form)).Field(x)

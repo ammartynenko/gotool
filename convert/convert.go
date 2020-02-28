@@ -6,10 +6,11 @@ package convert
 
 import (
 	"fmt"
-	d "github.com/fiam/gounidecode/unidecode"
+	d 	"github.com/mozillazg/go-unidecode"
 	"log"
 	"math"
 	"math/rand"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strconv"
@@ -36,10 +37,14 @@ var (
 	ErrorValueNotValidConvert = "error convert value"
 )
 
-func NewConverter(log *log.Logger) *Convert {
+func NewConverter(lg *log.Logger) *Convert {
 	f := &Convert{
 		stockFu: make(map[string]func()),
-		logger:  log,
+	}
+	if lg == nil {
+		f.logger = log.New(os.Stdout, defConverter, log.Ltime | log.Ldate)
+	} else {
+		f.logger = lg
 	}
 	f.stockFu["string"] = f.stringToInt
 	f.stockFu["string"] = f.stringToInt64
@@ -213,6 +218,10 @@ const (
 	HTML_RFC3339 = "2006-01-02T15:04"
 )
 
+//конвертация database=TimeStamp (HTML_UTC) в HTML-datetime-local(string)=HTML_RFC3339
+func (m *Convert) StringUTCtoHTML3339string(v string) string {
+	return m.StringUTCtoDate(v).Format(HTML_RFC3339)
+}
 //конвертация UTC в time. (html DATA из формы конвертируется этой функцией)
 //(FROM HTML)html.input(type=datetime-local) -> time.Time
 func (m *Convert) StringUTCtoDate(o string) time.Time {
