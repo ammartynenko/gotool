@@ -213,7 +213,7 @@ func (m *Convert) DirectStringtoFloat64(v string) float64 {
 // DATA CONVERT
 //=========================================
 const (
-	HTML_UTC        = "2006-01-02 15:04:05 -0700 MST"
+	LAYOUT_HTML_UTC = "2006-01-02 15:04:05 -0700 MST"
 	HTML_DATA       = "2006-01-02"
 	HTML_RFC3339    = "2006-01-02T15:04"
 	TIME_LAYOUT     = "15:04"
@@ -304,7 +304,7 @@ func (ms *Convert) UnixToTime(unixTime int64) time.Time {
 	return time.Unix(unixTime, 0)
 }
 
-//конвертация database=TimeStamp (HTML_UTC) в HTML-datetime-local(string)=HTML_RFC3339
+//конвертация database=TimeStamp (LAYOUT_HTML_UTC) в HTML-datetime-local(string)=HTML_RFC3339
 func (m *Convert) StringUTCtoHTML3339string(v string) string {
 	return m.StringUTCtoDate(v).Format(HTML_RFC3339)
 }
@@ -313,7 +313,7 @@ func (m *Convert) StringUTCtoHTML3339string(v string) string {
 //(FROM HTML)html.input(type=datetime-local) -> time.Time
 func (m *Convert) StringUTCtoDate(o string) time.Time {
 	//layout := "2006-01-02 15:04:05 -0700 MST"
-	t, err := time.Parse(HTML_UTC, o)
+	t, err := time.Parse(LAYOUT_HTML_UTC, o)
 	if err != nil {
 		m.logger.Fatal(err)
 	}
@@ -360,7 +360,7 @@ func (m *Convert) TimeToTimeDATA(o time.Time) time.Time {
 //конвертация Time.time в HTML_DATA
 //(TO HTML) time.time -> html.input(type=datetime-local)
 func (m *Convert) TimeToDATA_UTC(o time.Time) string {
-	return o.Format(HTML_UTC)
+	return o.Format(LAYOUT_HTML_UTC)
 }
 
 // конертация HTML даты в Unix формат
