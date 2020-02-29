@@ -63,7 +63,7 @@ func NewConverter(lg *log.Logger) *Convert {
 }
 
 //конвертация строки в целоцисленное значение 32 разрядное
-func (m *Convert) StrToInt() (*Convert) {
+func (m *Convert) StrToInt() *Convert {
 	if f, exists := m.stockFu["string"]; exists {
 		f()
 	}
@@ -71,7 +71,7 @@ func (m *Convert) StrToInt() (*Convert) {
 }
 
 //конвертация строки в целоцисленное значение 64 разрядное
-func (m *Convert) StrToInt64() (*Convert) {
+func (m *Convert) StrToInt64() *Convert {
 	if f, exists := m.stockFu["string"]; exists {
 		f()
 	}
@@ -104,7 +104,7 @@ func (m *Convert) Result() interface{} {
 }
 
 //  инциализация вводным значением
-func (m *Convert) Value(value interface{}) (*Convert) {
+func (m *Convert) Value(value interface{}) *Convert {
 	if m.checkValue(value) {
 		m.value = value
 		return m
@@ -213,12 +213,12 @@ func (m *Convert) DirectStringtoFloat64(v string) float64 {
 // DATA CONVERT
 //=========================================
 const (
-	HTML_UTC     = "2006-01-02 15:04:05 -0700 MST"
-	HTML_DATA    = "2006-01-02"
-	HTML_RFC3339 = "2006-01-02T15:04"
-	timeLayout   = "15:04"
-	dateLayout   = "2006-01-02"
-	formLayoout  = "2006-01-02 15:04"
+	HTML_UTC        = "2006-01-02 15:04:05 -0700 MST"
+	HTML_DATA       = "2006-01-02"
+	HTML_RFC3339    = "2006-01-02T15:04"
+	TIME_LAYOUT     = "15:04"
+	DATE_LAYOUT     = "2006-01-02"
+	DATETIME_LAYOUT = "2006-01-02 15:04"
 )
 
 //todo: добавить коррекцию UTC
@@ -270,16 +270,35 @@ func (ms *Convert) UnixToForm(unixTime int64) (dataV string, timeV string) {
 }
 
 //вторая функция - конвертация данных из формы в unixtime
-func (ms *Convert) FormToUnix(dataV, timeV string) (unixTime int64) {
-
-	ntime, err := time.Parse(formLayoout, fmt.Sprintf("%v %v", dataV, timeV))
-	if err != nil {
-		ms.logger.Printf("[FormToUnix] [error] %v\n", err.Error())
-	} else {
-		unixTime = ntime.Unix()
+func (ms *Convert) FormToUnix(typeLayoutConvert string) (unixTime int64) {
+	switch typeLayoutConvert {
+	case DATETIME_LAYOUT:
+		ntime, err := time.Parse(DATETIME_LAYOUT, fmt.Sprintf("%v %v", dataV, timeV))
+		if err != nil {
+			ms.logger.Printf("[FormToUnix] [error] %v\n", err.Error())
+		} else {
+			unixTime = ntime.Unix()
+		}
+	case DATE_LAYOUT:
+		ntime, err := time.Parse(DATE_LAYOUT, fmt.Sprintf("%v %v", dataV, timeV))
+		if err != nil {
+			ms.logger.Printf("[FormToUnix] [error] %v\n", err.Error())
+		} else {
+			unixTime = ntime.Unix()
+		}
+	case TIME_LAYOUT:
+		ntime, err := time.Parse(TIME_LAYOUT, fmt.Sprintf("%v %v", dataV, timeV))
+		if err != nil {
+			ms.logger.Printf("[FormToUnix] [error] %v\n", err.Error())
+		} else {
+			unixTime = ntime.Unix()
+		}
+	default:
+		return 0
 	}
 	return
 }
+
 //конвертация unix int64 в time.time
 func (ms *Convert) UnixToTime(unixTime int64) time.Time {
 	return time.Unix(unixTime, 0)
@@ -300,7 +319,6 @@ func (m *Convert) StringUTCtoDate(o string) time.Time {
 	}
 	return t
 }
-
 
 //конвертация HTML.DATA в time.time
 //(FROM HTML) html.input(type=data) -> time.Time
