@@ -270,7 +270,7 @@ func (ms *Convert) UnixToForm(unixTime int64) (dataV string, timeV string) {
 }
 
 //вторая функция - конвертация данных из формы в unixtime
-func (ms *Convert) FormToUnix(typeLayoutConvert string) (unixTime int64) {
+func (ms *Convert) FormToUnix(typeLayoutConvert string, dataV, timeV string) (unixTime int64) {
 	switch typeLayoutConvert {
 	case DATETIME_LAYOUT:
 		ntime, err := time.Parse(DATETIME_LAYOUT, fmt.Sprintf("%v %v", dataV, timeV))
@@ -280,14 +280,14 @@ func (ms *Convert) FormToUnix(typeLayoutConvert string) (unixTime int64) {
 			unixTime = ntime.Unix()
 		}
 	case DATE_LAYOUT:
-		ntime, err := time.Parse(DATE_LAYOUT, fmt.Sprintf("%v %v", dataV, timeV))
+		ntime, err := time.Parse(DATE_LAYOUT, fmt.Sprintf("%v %v", dataV))
 		if err != nil {
 			ms.logger.Printf("[FormToUnix] [error] %v\n", err.Error())
 		} else {
 			unixTime = ntime.Unix()
 		}
 	case TIME_LAYOUT:
-		ntime, err := time.Parse(TIME_LAYOUT, fmt.Sprintf("%v %v", dataV, timeV))
+		ntime, err := time.Parse(TIME_LAYOUT, fmt.Sprintf("%v", timeV))
 		if err != nil {
 			ms.logger.Printf("[FormToUnix] [error] %v\n", err.Error())
 		} else {
