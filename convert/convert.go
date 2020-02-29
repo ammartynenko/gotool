@@ -280,7 +280,7 @@ func (ms *Convert) FormToUnix(typeLayoutConvert string, dataV, timeV string) (un
 			unixTime = ntime.Unix()
 		}
 	case LAYOUT_DATE_LAYOUT:
-		ntime, err := time.Parse(LAYOUT_DATE_LAYOUT, fmt.Sprintf("%v %v", dataV))
+		ntime, err := time.Parse(LAYOUT_DATE_LAYOUT, fmt.Sprintf("%v", dataV))
 		if err != nil {
 			ms.logger.Printf("[FormToUnix] [error] %v\n", err.Error())
 		} else {
