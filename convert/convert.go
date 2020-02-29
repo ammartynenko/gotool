@@ -221,82 +221,78 @@ func (m *Convert) DirectStringtoFloat64(v string) float64 {
 //=========================================
 // DATA CONVERT
 //=========================================
-//todo: добавить коррекцию UTC
-//конвертация времени 2  базовых функции для цикла взаимодействия между базой данных - сервером и html форм
-//по формам - вводятся 2 формы date, time, на серверной части обрабатываюся данные, приводятся все к единому формату
-// time.time и экспортируем в базу данных в формате time.Unix int64 значение
-//обратный цикл такой же
-//функция принимает время в формате Unix и возвращает 2 строковых представления дата и время для
-//корректного отображения в input.date и input.time
-func (ms *Convert) UnixToForm(unixTime int64) (dataV string, timeV string) {
-	tt := time.Unix(unixTime, 0)
-	y, m, d := tt.Date()
-	month, day := "", ""
-	var (
-		formDataLess = "0%d"
-		formDataMore = "%d"
-		formTimeLess = "0%d"
-		formTimeMore = "%d"
-	)
-	//data:month
-	if m < 10 {
-		month = fmt.Sprintf(formDataLess, m)
-	} else {
-		month = fmt.Sprintf(formDataMore, m)
-	}
-	//data:day
-	if d < 10 {
-		day = fmt.Sprintf(formDataLess, d)
-	} else {
-		day = fmt.Sprintf(formDataMore, d)
-	}
-	dataV = fmt.Sprintf("%d-%s-%s", y, month, day)
-
-	//time
-	hour := ""
-	minute := ""
-	if tt.Hour() < 10 {
-		hour = fmt.Sprintf(formTimeLess, tt.Hour())
-	} else {
-		hour = fmt.Sprintf(formTimeMore, tt.Hour())
-	}
-	if tt.Minute() < 10 {
-		minute = fmt.Sprintf(formTimeLess, tt.Minute())
-	} else {
-		minute = fmt.Sprintf(formTimeMore, tt.Minute())
-	}
-	timeV = strings.Join([]string{hour, minute}, ":")
-	return
+//из числового значения времени переводим в строковое представление раздельное даты и времени
+type StockTime struct {
+	Date, Time string
 }
 
-//вторая функция - конвертация данных из формы в unixtime
-func (ms *Convert) FormToUnix(typeLayoutConvert string, dataV, timeV string) (unixTime int64) {
-	switch typeLayoutConvert {
-	case LAYOUT_DATETIME_LAYOUT:
-		ntime, err := time.Parse(LAYOUT_DATETIME_LAYOUT, fmt.Sprintf("%v %v", dataV, timeV))
-		if err != nil {
-			ms.logger.Printf("[FormToUnix] [error] %v\n", err.Error())
-		} else {
-			unixTime = ntime.Unix()
-		}
-	case LAYOUT_DATE_LAYOUT:
-		ntime, err := time.Parse(LAYOUT_DATE_LAYOUT, fmt.Sprintf("%v", dataV))
-		if err != nil {
-			ms.logger.Printf("[FormToUnix] [error] %v\n", err.Error())
-		} else {
-			unixTime = ntime.Unix()
-		}
-	case LAYOUT_TIME_LAYOUT:
-		ntime, err := time.Parse(LAYOUT_TIME_LAYOUT, fmt.Sprintf("%v", timeV))
-		if err != nil {
-			ms.logger.Printf("[FormToUnix] [error] %v\n", err.Error())
-		} else {
-			unixTime = ntime.Unix()
-		}
-	default:
-		return 0
+func (s StockTime) String() string {
+	return fmt.Sprintf("%s %s", s.Date, s.Time)
+}
+
+//конвертация из time.unix в строковое значение для представления в форме
+func UnixToForm(unixTime int64) StockTime {
+	ut := time.Unix(unixTime, 0)
+	y, m, d := ut.Date()
+	var (
+		Less   = "0%d"
+		More   = "%d"
+		month  string
+		day    string
+		hour   string
+		minute string
+		st     StockTime
+	)
+
+	//data:month
+	if m < 10 {
+		month = fmt.Sprintf(Less, m)
+	} else {
+		month = fmt.Sprintf(More, m)
 	}
-	return
+
+	//data:day
+	if d < 10 {
+		day = fmt.Sprintf(Less, d)
+	} else {
+		day = fmt.Sprintf(More, d)
+	}
+	st.Date = fmt.Sprintf("%d-%s-%s", y, month, day)
+
+	//time
+	if ut.Hour() < 10 {
+		hour = fmt.Sprintf(Less, ut.Hour())
+	} else {
+		hour = fmt.Sprintf(More, ut.Hour())
+	}
+	if ut.Minute() < 10 {
+		minute = fmt.Sprintf(Less, ut.Minute())
+	} else {
+		minute = fmt.Sprintf(More, ut.Minute())
+	}
+	st.Time = strings.Join([]string{hour, minute}, ":")
+
+	return st
+}
+
+//конвертация из формы строковых значений в тип time.unix
+func FormToUnix(s StockTime, correctOffset time.Duration) (int64, error) {
+	nt, err := time.Parse(LAYOUT_DATETIME_LAYOUT, s.String())
+	if err != nil {
+		return 0, err
+	}
+	nt = nt.Add(correctOffset)
+	return nt.Unix(), nil
+}
+
+//конвертация из формы строковых значений в тип времени
+func FormToTime(s StockTime, correctOffset time.Duration) (time.Time, error) {
+	nt, err := time.Parse(LAYOUT_DATETIME_LAYOUT, s.String())
+	if err != nil {
+		return time.Time{}, err
+	}
+	nt = nt.Add(correctOffset)
+	return nt, nil
 }
 
 //конвертация unix int64 в time.time
