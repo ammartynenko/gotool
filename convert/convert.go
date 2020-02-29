@@ -231,7 +231,7 @@ func (s StockTime) String() string {
 }
 
 //конвертация из time.unix в строковое значение для представления в форме
-func UnixToForm(unixTime int64) StockTime {
+func (ms *Convert) UnixToForm(unixTime int64) StockTime {
 	ut := time.Unix(unixTime, 0)
 	y, m, d := ut.Date()
 	var (
@@ -276,9 +276,10 @@ func UnixToForm(unixTime int64) StockTime {
 }
 
 //конвертация из формы строковых значений в тип time.unix
-func FormToUnix(s StockTime, correctOffset time.Duration) (int64, error) {
+func (ms *Convert) FormToUnix(s StockTime, correctOffset time.Duration) (int64, error) {
 	nt, err := time.Parse(LAYOUT_DATETIME_LAYOUT, s.String())
 	if err != nil {
+		ms.logger.Printf("%v", err)
 		return 0, err
 	}
 	nt = nt.Add(correctOffset)
@@ -286,9 +287,10 @@ func FormToUnix(s StockTime, correctOffset time.Duration) (int64, error) {
 }
 
 //конвертация из формы строковых значений в тип времени
-func FormToTime(s StockTime, correctOffset time.Duration) (time.Time, error) {
+func (ms *Convert) FormToTime(s StockTime, correctOffset time.Duration) (time.Time, error) {
 	nt, err := time.Parse(LAYOUT_DATETIME_LAYOUT, s.String())
 	if err != nil {
+		ms.logger.Printf("%v", err)
 		return time.Time{}, err
 	}
 	nt = nt.Add(correctOffset)
