@@ -257,7 +257,7 @@ func (ms *Convert) UnixToForm(unixTime int64) StockTime {
 	} else {
 		day = fmt.Sprintf(More, d)
 	}
-	st.Date = fmt.Sprintf("%d-%s-%s", y, month, day)
+	st.Date = fmt.Sprintf("%v-%v-%v", y, month, day)
 
 	//time
 	if ut.Hour() < 10 {
@@ -298,8 +298,8 @@ func (ms *Convert) FormToTime(s StockTime, correctOffset time.Duration) (time.Ti
 }
 
 //конвертация unix int64 в time.time
-func (ms *Convert) UnixToTime(unixTime int64) time.Time {
-	return time.Unix(unixTime, 0)
+func (ms *Convert) UnixToTime(unixTime int64, correctOffset time.Duration) time.Time {
+	return time.Unix(unixTime, 0).Add(correctOffset)
 }
 
 //конвертация database=TimeStamp (LAYOUT_HTML_UTC) в HTML-datetime-local(string)=LAYOUT_HTML_RFC3339
