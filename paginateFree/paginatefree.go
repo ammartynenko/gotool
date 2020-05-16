@@ -42,6 +42,7 @@ func (p *Paginator) Paginate(page, countPage int, list []interface{}) (*Paginate
 		pr.CountPage = countPage
 		pr.List = list
 		pr.Block = list
+		pr.TotalBlock = make([][]interface{}, 1)
 		pr.TotalBlock[0] = list
 		return &pr, nil
 	}
