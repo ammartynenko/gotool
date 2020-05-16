@@ -19,12 +19,12 @@ type Paginator struct {
 	log *log.Logger
 }
 type PaginateResult struct {
-	Page       int
-	TotalPage  int
-	CountPage  int
-	List       []interface{}
-	Block      []interface{}
-	TotalBlock [][]interface{}
+	Page       int             //текущая страница
+	TotalPage  int             //всего страниц
+	CountPage  int             //количество элементов на странице
+	List       []interface{}   //общий список
+	Block      []interface{}   //индекс блока=страницы
+	TotalBlock [][]interface{} //список всех блоков
 }
 
 func NewPaginator() *Paginator {
