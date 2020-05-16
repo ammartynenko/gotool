@@ -24,8 +24,8 @@ type PaginateResult struct {
 	Page       int             //текущая страница
 	TotalPage  int             //всего страниц
 	CountPage  int             //количество элементов на странице
-	List       interface{}     //общий список
-	Block      interface{}     //индекс блока=страницы
+	List       []interface{}   //общий список
+	Block      []interface{}   //индекс блока=страницы
 	TotalBlock [][]interface{} //список всех блоков
 }
 
@@ -55,8 +55,8 @@ func (p *Paginator) Paginate(page, countPage int, list interface{}) (*PaginateRe
 		pr.Page = page
 		pr.TotalPage = 1
 		pr.CountPage = countPage
-		pr.List = list
-		pr.Block = list
+		pr.List = res
+		pr.Block = res
 		pr.TotalBlock = make([][]interface{}, 1)
 		pr.TotalBlock[0] = res
 		return &pr, nil
@@ -91,7 +91,7 @@ func (p *Paginator) Paginate(page, countPage int, list interface{}) (*PaginateRe
 	//return result
 	pr.Page = page
 	pr.CountPage = countPage
-	pr.List = list
+	pr.List = res
 	pr.Block = result[page-1]
 	pr.TotalBlock = result
 	return &pr, nil
