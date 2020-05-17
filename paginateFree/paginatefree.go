@@ -24,6 +24,7 @@ type PaginateResult struct {
 	Page       int             //текущая страница
 	TotalPage  int             //всего страниц
 	CountPage  int             //количество элементов на странице
+	CountLinks int             //количество ссылок в пагинации
 	List       []interface{}   //общий список
 	Block      []interface{}   //индекс блока=страницы
 	TotalBlock [][]interface{} //список всех блоков
