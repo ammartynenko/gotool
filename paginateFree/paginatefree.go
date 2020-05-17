@@ -25,6 +25,7 @@ type PaginateResult struct {
 	TotalPage  int             //всего страниц
 	CountPage  int             //количество элементов на странице
 	CountLinks int             //количество ссылок в пагинации
+	ListPage   []int           //список всех страниц в отсортированном виде
 	List       []interface{}   //общий список
 	Block      []interface{}   //индекс блока=страницы
 	TotalBlock [][]interface{} //список всех блоков
@@ -36,7 +37,7 @@ func NewPaginator() *Paginator {
 	}
 	return &p
 }
-func (p *Paginator) Paginate(page, countPage int, list interface{}) (*PaginateResult, error) {
+func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (*PaginateResult, error) {
 	var pr PaginateResult
 	var tt = reflect.TypeOf(list)
 	var vv = reflect.ValueOf(list)
@@ -56,14 +57,17 @@ func (p *Paginator) Paginate(page, countPage int, list interface{}) (*PaginateRe
 		pr.Page = page
 		pr.TotalPage = 1
 		pr.CountPage = countPage
+		pr.ListPage = []int{1}
 		pr.List = res
 		pr.Block = res
 		pr.TotalBlock = make([][]interface{}, 1)
 		pr.TotalBlock[0] = res
+
 		return &pr, nil
 	}
 
 	// calculate totalpage
+	pr.Page = page
 	yes := vv.Len() % countPage
 	if yes > 0 {
 		pr.TotalPage = (vv.Len() / countPage) + 1
@@ -89,11 +93,53 @@ func (p *Paginator) Paginate(page, countPage int, list interface{}) (*PaginateRe
 		result[x] = res[start:step]
 	}
 
+	//make listLinks
+	var tmp = make([]int, countLink+1)
+	var arr = make([]int, pr.TotalPage)
+	for i := 0; i < pr.TotalPage; i++ {
+		arr[i] = i
+	}
+
+	if countLink <= pr.TotalPage {
+		tmp = arr
+	} else {
+		mid := countLink / 2
+		var right = 0
+		var left = 0
+		//right position
+		if pr.Page+mid <= pr.TotalPage {
+			right = pr.Page + mid
+		} else {
+			right = pr.TotalPage
+		}
+		//left position
+		if pr.Page-mid <= 1 {
+			left = 1
+		} else {
+			left = pr.Page - mid
+		}
+		tmp = arr[left:right]
+	}
+	pr.ListPage = tmp
+
 	//return result
-	pr.Page = page
 	pr.CountPage = countPage
 	pr.List = res
 	pr.Block = result[page-1]
 	pr.TotalBlock = result
 	return &pr, nil
 }
+
+//
+//if countLink  <= TotalPage:
+//show ALL(coountLink)
+//if countLink > TotalPage:
+//midcountLinks  = countLink / 2 (среднее значение)
+//if (CurrentPage + midcountLinks) > TotalPage:
+//rightPos = [currentPage:...]
+//if (CurrentPage + midcountLinks) <= TotalPage:
+//rightPos = CurrentPage + midcountLinks
+//if (currentPage - midcountLinks) <= 1:
+//leftPos = [:currentPage]
+//if (currentPage - midcountLinks) > 1:
+//leftPos =  currentPage - midcountLinks
