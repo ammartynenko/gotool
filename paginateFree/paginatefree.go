@@ -100,23 +100,22 @@ func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (
 		arr[i] = i
 	}
 
-	if countLink <= pr.TotalPage {
+	if countLink >= pr.TotalPage {
 		tmp = arr
 	} else {
-		mid := countLink / 2
 		var right = 0
 		var left = 0
-		//right position
-		if pr.Page+mid <= pr.TotalPage {
-			right = pr.Page + mid
-		} else {
+		//right
+		if page+countLink >= pr.TotalPage {
 			right = pr.TotalPage
-		}
-		//left position
-		if pr.Page-mid <= 1 {
-			left = 1
 		} else {
-			left = pr.Page - mid
+			right = page + countLink
+		}
+		//left
+		if page-(countLink-1) <= 0 {
+			left = 0
+		} else {
+			left = page - (countLink - 1)
 		}
 		tmp = arr[left:right]
 	}
