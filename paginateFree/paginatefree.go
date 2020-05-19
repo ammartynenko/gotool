@@ -39,9 +39,6 @@ func NewPaginator() *Paginator {
 	return &p
 }
 func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (*PaginateResult, error) {
-	if page == 0 {
-		page = 1
-	}
 
 	//определение переменных
 	var pr PaginateResult
@@ -55,7 +52,7 @@ func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (
 	}
 	//формирую возвратный слайс
 	var res = make([]interface{}, vv.Len())
-	for i := 1; i <= vv.Len(); i++ {
+	for i := 0; i < vv.Len(); i++ {
 		res[i] = vv.Index(i).Interface()
 	}
 
@@ -83,14 +80,14 @@ func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (
 	}
 
 	//проверка корректности текущей страницы на диапазон
-	if page <= 1 || page > pr.TotalPage {
+	if page <= 0 || page > pr.TotalPage {
 		return nil, errorPage
 	}
 
 	//формирую массив массивов по длине блока
 	var result = make([][]interface{}, pr.TotalPage)
 	var start, step = 0, 0
-	for x := 0; x < pr.TotalPage; x++ {
+	for x := 1; x <= pr.TotalPage; x++ {
 		start = x * countPage
 		if x == pr.TotalPage-1 {
 			step = vv.Len()
@@ -103,7 +100,7 @@ func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (
 	//формирую ссылочный список
 	var tmp = make([]int, countLink+1)
 	var arr = make([]int, pr.TotalPage)
-	for i := 1; i <= pr.TotalPage; i++ {
+	for i := 0; i < pr.TotalPage; i++ {
 		arr[i] = i
 	}
 
