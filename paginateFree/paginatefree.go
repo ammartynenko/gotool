@@ -80,7 +80,7 @@ func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (
 	}
 
 	//проверка корректности текущей страницы на диапазон
-	if page <= 0 || page > pr.TotalPage {
+	if page < 0 || page > pr.TotalPage {
 		return nil, errorPage
 	}
 
