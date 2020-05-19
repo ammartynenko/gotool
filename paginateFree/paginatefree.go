@@ -117,7 +117,7 @@ func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (
 		if page >= countLink {
 			left = page - countLink
 		} else {
-			left = 0
+			left = 1
 		}
 		//правая позиция
 		if pr.TotalPage >= page+(countLink+1) {
