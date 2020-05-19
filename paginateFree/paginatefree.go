@@ -13,8 +13,9 @@ const (
 )
 
 var (
-	errorPage = errors.New("not correct number current page")
-	errorType = errors.New("error: type is not slice")
+	errorPage  = errors.New("not correct number current page")
+	errorType  = errors.New("error: type is not slice")
+	errorIndex = errors.New("error: index wrong")
 )
 
 type Paginator struct {
@@ -38,15 +39,17 @@ func NewPaginator() *Paginator {
 	return &p
 }
 func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (*PaginateResult, error) {
+	//определение переменных
 	var pr PaginateResult
 	var tt = reflect.TypeOf(list)
 	var vv = reflect.ValueOf(list)
+	var right, left = 0, 0
 
-	//check slice type
+	//проверка типа
 	if tt.Kind() != reflect.Slice {
 		return nil, errorType
 	}
-	//make list interface for export
+	//формирую возвратный слайс
 	var res = make([]interface{}, vv.Len())
 	for i := 0; i < vv.Len(); i++ {
 		res[i] = vv.Index(i).Interface()
@@ -66,7 +69,7 @@ func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (
 		return &pr, nil
 	}
 
-	// calculate totalpage
+	// подсчет количество страниц с учетом количества элементов на страница = (CountPage)
 	pr.Page = page
 	yes := vv.Len() % countPage
 	if yes > 0 {
@@ -75,12 +78,12 @@ func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (
 		pr.TotalPage = vv.Len() / countPage
 	}
 
-	//check correct number page
+	//проверка корректности текущей страницы на диапазон
 	if page <= 0 || page > pr.TotalPage {
 		return nil, errorPage
 	}
 
-	//all correct
+	//формирую массив массивов по длине блока
 	var result = make([][]interface{}, pr.TotalPage)
 	var start, step = 0, 0
 	for x := 0; x < pr.TotalPage; x++ {
@@ -93,52 +96,40 @@ func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (
 		result[x] = res[start:step]
 	}
 
-	//make listLinks
+	//формирую ссылочный список
 	var tmp = make([]int, countLink+1)
 	var arr = make([]int, pr.TotalPage)
 	for i := 0; i < pr.TotalPage; i++ {
 		arr[i] = i
 	}
 
-	if countLink >= pr.TotalPage {
-		tmp = arr
+	//проверка на корректный индекс cp
+	if page > pr.TotalPage {
+		//ошибка
+		p.log.Println(errorIndex)
+		return nil, errorIndex
 	} else {
-		var right = 0
-		var left = 0
-		//right
-		if page+countLink >= pr.TotalPage {
-			right = pr.TotalPage
+		//левая позиция
+		if page >= countLink {
+			left = page - countLink
 		} else {
-			right = page + countLink
-		}
-		//left
-		if page-(countLink-1) <= 0 {
 			left = 0
+		}
+		//правая позиция
+		if pr.TotalPage >= page+(countLink+1) {
+			right = page + (countLink + 1)
 		} else {
-			left = page - (countLink - 1)
+			right = pr.TotalPage
 		}
 		tmp = arr[left:right]
 	}
+	//сохраняю результат
 	pr.ListPage = tmp
 
-	//return result
+	//возвращаю результат
 	pr.CountPage = countPage
 	pr.List = res
 	pr.Block = result[page-1]
 	pr.TotalBlock = result
 	return &pr, nil
 }
-
-//
-//if countLink  <= TotalPage:
-//show ALL(coountLink)
-//if countLink > TotalPage:
-//midcountLinks  = countLink / 2 (среднее значение)
-//if (CurrentPage + midcountLinks) > TotalPage:
-//rightPos = [currentPage:...]
-//if (CurrentPage + midcountLinks) <= TotalPage:
-//rightPos = CurrentPage + midcountLinks
-//if (currentPage - midcountLinks) <= 1:
-//leftPos = [:currentPage]
-//if (currentPage - midcountLinks) > 1:
-//leftPos =  currentPage - midcountLinks
