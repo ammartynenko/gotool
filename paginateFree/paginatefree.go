@@ -39,6 +39,10 @@ func NewPaginator() *Paginator {
 	return &p
 }
 func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (*PaginateResult, error) {
+	if page == 0 {
+		page = 1
+	}
+
 	//определение переменных
 	var pr PaginateResult
 	var tt = reflect.TypeOf(list)
