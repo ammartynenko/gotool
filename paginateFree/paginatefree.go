@@ -87,7 +87,7 @@ func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (
 	//формирую массив массивов по длине блока
 	var result = make([][]interface{}, pr.TotalPage)
 	var start, step = 0, 0
-	for x := 1; x <= pr.TotalPage; x++ {
+	for x := 0; x < pr.TotalPage; x++ {
 		start = x * countPage
 		if x == pr.TotalPage-1 {
 			step = vv.Len()
