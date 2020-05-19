@@ -55,7 +55,7 @@ func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (
 	}
 	//формирую возвратный слайс
 	var res = make([]interface{}, vv.Len())
-	for i := 0; i < vv.Len(); i++ {
+	for i := 1; i <= vv.Len(); i++ {
 		res[i] = vv.Index(i).Interface()
 	}
 
@@ -83,7 +83,7 @@ func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (
 	}
 
 	//проверка корректности текущей страницы на диапазон
-	if page <= 0 || page > pr.TotalPage {
+	if page <= 1 || page > pr.TotalPage {
 		return nil, errorPage
 	}
 
@@ -103,7 +103,7 @@ func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (
 	//формирую ссылочный список
 	var tmp = make([]int, countLink+1)
 	var arr = make([]int, pr.TotalPage)
-	for i := 0; i < pr.TotalPage; i++ {
+	for i := 1; i <= pr.TotalPage; i++ {
 		arr[i] = i
 	}
 
