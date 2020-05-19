@@ -130,7 +130,7 @@ func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (
 	//возвращаю результат
 	pr.CountPage = countPage
 	pr.List = res
-	pr.Block = result[page-1]
+	pr.Block = result[page]
 	pr.TotalBlock = result
 	return &pr, nil
 }
