@@ -486,7 +486,7 @@ func (g *Form) ValidateForm(form interface{}, r *http.Request) (status bool) {
 				}
 
 			case reflect.Uint, reflect.Uint32, reflect.Uint16, reflect.Uint64:
-				result := vf.Interface().(int64)
+				result := vf.Interface().(uint)
 				if result == 0 {
 					//error
 					stock.Error[t.Field(i).Name] = fu.Error
