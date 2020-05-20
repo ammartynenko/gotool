@@ -116,6 +116,11 @@ func (g *Form) atomicLoadField(t reflect.StructField, v reflect.Value, stocker *
 		stocker.Value[t.Name] = strings.TrimSpace(r.Form.Get(t.Name))
 		v.SetString(strings.TrimSpace(r.Form.Get(t.Name)))
 
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		value, _ := strconv.Atoi(strings.TrimSpace(r.Form.Get(t.Name)))
+		stocker.Value[t.Name] = value
+		v.SetInt(int64(value))
+
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		value, _ := strconv.Atoi(strings.TrimSpace(r.Form.Get(t.Name)))
 		stocker.Value[t.Name] = value
