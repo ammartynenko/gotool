@@ -151,6 +151,24 @@ func (g *Form) atomicLoadField(t reflect.StructField, v reflect.Value, stocker *
 			stocker.Value[t.Name] = res
 			v.Set(reflect.ValueOf(&res).Elem())
 
+		case []uint:
+			var res []uint
+			for _, x := range resultForm {
+				val, _ := strconv.ParseUint(x, 10, 0)
+				res = append(res, uint(val))
+			}
+			stocker.Value[t.Name] = res
+			v.Set(reflect.ValueOf(&res).Elem())
+
+		case []uint64:
+			var res []uint64
+			for _, x := range resultForm {
+				val, _ := strconv.ParseUint(x, 10, 0)
+				res = append(res, val)
+			}
+			stocker.Value[t.Name] = res
+			v.Set(reflect.ValueOf(&res).Elem())
+
 		case []int64:
 			var res []int64
 			for _, x := range resultForm {
@@ -286,6 +304,16 @@ func (g *Form) UpdateForm(form, source interface{}) {
 					result := strings.TrimSpace(vf.Interface().(string))
 					stock.Value[tform.Name] = result
 					tformValue.SetString(result)
+
+				case reflect.Uint:
+					result := vf.Interface().(uint)
+					stock.Value[tform.Name] = result
+					tformValue.Set(reflect.ValueOf(result))
+
+				case reflect.Uint64:
+					result := vf.Interface().(uint64)
+					stock.Value[tform.Name] = result
+					tformValue.Set(reflect.ValueOf(result))
 
 				case reflect.Int:
 					result := vf.Interface().(int)
@@ -442,6 +470,17 @@ func (g *Form) ValidateForm(form interface{}, r *http.Request) (status bool) {
 
 			case reflect.Int64, reflect.Int32, reflect.Int16, reflect.Int:
 				//result := strings.TrimSpace(r.Form.Get(t.Field(i).Name))
+				result := vf.Interface().(int64)
+				if result == 0 {
+					//error
+					stock.Error[t.Field(i).Name] = fu.Error
+				} else {
+					stock.Error[t.Field(i).Name] = ErrorForm{}
+					stock.SuccessClass[t.Field(i).Name] = fu.SuccesClass
+					countValidate++
+				}
+
+			case reflect.Uint, reflect.Uint32, reflect.Uint16, reflect.Uint64:
 				result := vf.Interface().(int64)
 				if result == 0 {
 					//error
