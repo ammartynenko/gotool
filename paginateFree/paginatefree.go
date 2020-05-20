@@ -26,7 +26,7 @@ type PaginateResult struct {
 	TotalPage  int             //всего страниц
 	CountPage  int             //количество элементов на странице
 	CountLinks int             //количество ссылок в пагинации
-	ListPage   []int           //список всех страниц в отсортированном виде
+	ListPage   []int           //список страниц по CountLinks
 	List       []interface{}   //общий список
 	Block      []interface{}   //индекс блока=страницы
 	TotalBlock [][]interface{} //список всех блоков
@@ -97,11 +97,12 @@ func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (
 		result[x] = res[start:step]
 	}
 
-	//формирую ссылочный список
+	//формирую ссылочный массив
 	var tmp = make([]int, countLink+1)
 	var arr = make([]int, pr.TotalPage)
 	for i := 0; i < pr.TotalPage; i++ {
-		arr[i] = i
+		//увеличение на единицу = корректировка нулевого индекса
+		arr[i] = i + 1
 	}
 
 	//проверка на корректный индекс cp
@@ -124,7 +125,7 @@ func (p *Paginator) Paginate(page, countPage, countLink int, list interface{}) (
 		}
 		tmp = arr[left:right]
 	}
-	//сохраняю результат
+	//сохраняю результат ссылочного массива с коррекцией на 1
 	pr.ListPage = tmp
 
 	//возвращаю результат
