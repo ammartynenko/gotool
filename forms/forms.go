@@ -535,6 +535,16 @@ func (g *Form) ValidateForm(form interface{}, r *http.Request) (status bool) {
 						countValidate++
 					}
 
+				case time.Time:
+					if value == nil {
+						//error, intyervace is nil
+						stock.Error[t.Field(i).Name] = fu.Error
+					} else {
+						stock.Error[t.Field(i).Name] = ErrorForm{}
+						stock.SuccessClass[t.Field(i).Name] = fu.SuccesClass
+						countValidate++
+					}
+
 				case []string:
 					result := value.([]string)
 					if len(result) == 0 {
