@@ -111,6 +111,9 @@ func (g *Form) checkedForm(form interface{}) (reflect.Type, reflect.Value, *Form
 func (g *Form) atomicLoadField(t reflect.StructField, v reflect.Value, stocker *FormStock, r *http.Request) {
 	r.ParseForm()
 	switch v.Kind() {
+	case reflect.Interface:
+		stocker.Value[t.Name] = r.Form.Get(t.Name)
+
 	case reflect.String:
 		//fmt.Printf("[ATOMIC STRING] %v : %v\n", t.Name,r.Form.Get(t.Name))
 		stocker.Value[t.Name] = strings.TrimSpace(r.Form.Get(t.Name))
@@ -310,6 +313,10 @@ func (g *Form) UpdateForm(form, source interface{}) {
 					stock.Value[tform.Name] = result
 					tformValue.SetString(result)
 
+				case reflect.Interface:
+					stock.Value[tform.Name] = vf.Interface()
+					tformValue.Set(vf)
+
 				case reflect.Uint:
 					result := vf.Interface().(uint)
 					stock.Value[tform.Name] = result
@@ -465,6 +472,16 @@ func (g *Form) ValidateForm(form interface{}, r *http.Request) (status bool) {
 				//result, _ := strconv.ParseFloat(r.Form.Get(t.Field(i).Name), 64)
 				result := vf.Interface().(float64)
 				if result == 0 {
+					//error
+					stock.Error[t.Field(i).Name] = fu.Error
+				} else {
+					stock.Error[t.Field(i).Name] = ErrorForm{}
+					stock.SuccessClass[t.Field(i).Name] = fu.SuccesClass
+					countValidate++
+				}
+			case reflect.Interface:
+				result := vf.Interface()
+				if result == nil {
 					//error
 					stock.Error[t.Field(i).Name] = fu.Error
 				} else {
