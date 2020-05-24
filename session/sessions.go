@@ -8,7 +8,6 @@ type Session map[string]map[string]interface{}
 //создание новой сессии
 func NewSession() Session {
 	return make(map[string]map[string]interface{})
-
 }
 
 //извлечение объекта из сессии
