@@ -158,3 +158,7 @@ func (s *Session) NewTEXT() TEXT {
 	return make(map[string]map[string]interface{})
 
 }
+//обновление TEXT
+func (s *Session) UpdateTEXT(v TEXT) {
+	s.TEXT = v
+}

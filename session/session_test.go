@@ -105,3 +105,13 @@ func TestSession_TextFROMJSON(t *testing.T) {
 		}
 	}
 }
+func TestSession_UpdateTEXT(t *testing.T) {
+	tt := New()
+	tt.SetTEXT("stock", "simple", 123)
+	newText := tt.NewTEXT()
+	t.Log(tt.TEXT)
+	newText.set("newstock","newsimple", 456)
+	tt.UpdateTEXT(newText)
+	t.Log(tt.TEXT)
+
+}
