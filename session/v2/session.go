@@ -25,7 +25,6 @@ const (
 var (
 	errorNOTFOUND  = errors.New("not found key")
 	errorNOTFOUNDS = errors.New("not found section")
-	errorWRONGTYPE = errors.New("wrong type")
 )
 
 //текстовой блок
@@ -76,25 +75,86 @@ func (t *TEXT) get(s, k string) (interface{}, error) {
 }
 
 //конвертация TEXT  -> JSON = []byte
-func (t *TEXT) toJSON() (error, []byte) {
+func (t *TEXT) toJSON() ([]byte, error) {
 	if res, err := json.Marshal(t); err == nil {
-		return nil, res
+		return res, nil
 	} else {
-		return err, nil
+		return nil, err
 	}
 }
 
 //конвертация  string(JSON) -> Session.text
-func (t *TEXT) fromJSON(v []byte) (error, TEXT) {
+func (t *TEXT) fromJSON(v []byte) (TEXT, error) {
 	var ns = make(map[string]map[string]interface{})
 	if err := json.Unmarshal(v, &ns); err != nil {
-		return err, nil
+		return nil, err
 	}
-	return nil, ns
+	return ns, nil
+}
+
+//размещения данных в ~DATA~
+func (t *DATA) set(s, k string, v interface{}) {
+	if _, exists := (*t)[s]; exists {
+		if _, found := (*t)[s][k]; found {
+		} else {
+			(*t)[s] = make(map[string]interface{})
+		}
+	} else {
+		(*t) = make(map[string]map[string]interface{})
+		(*t)[s] = make(map[string]interface{})
+	}
+	(*t)[s][k] = v
+}
+
+//извлечение данных из ~DATA~
+func (t *DATA) get(s, k string) (interface{}, error) {
+	if _, exists := (*t)[s]; exists {
+		if r, found := (*t)[s][k]; found {
+			return r, nil
+		} else {
+			return nil, errorNOTFOUND
+		}
+	}
+	return nil, errorNOTFOUNDS
+}
+
+//размещение в ТЕКСТовом блоке
+func (s *Session) SetTEXT(section, key string, value interface{}) {
+	s.TEXT.set(section, key, value)
+}
+
+//размещение в DATA блоке
+func (s *Session) SetDATA(section, key string, value interface{}) {
+	s.DATA.set(section, key, value)
+}
+
+//извлечение из ТЕКСТового блока
+func (s *Session) GetTEXT(section, key string) (interface{}, error) {
+	return s.TEXT.get(section, key)
+}
+
+//извлечение из DATA блока
+func (s *Session) GetDATA(section, key string) (interface{}, error) {
+	return s.DATA.get(section, key)
+}
+
+//извлечение из ТЕКСТового блока
+func (s *Session) TextToJSON() ([]byte, error) {
+	return s.TEXT.toJSON()
+}
+
+//из строки в ТЕКСТ
+func (s *Session) TextFROMJSON(v []byte) (TEXT, error) {
+	return s.TEXT.fromJSON(v)
+}
+
+//создание Session.Data
+func (s *Session) NewDATA() DATA {
+	return make(map[string]map[string]interface{})
 }
 
 //создание Session.Text
 func (s *Session) NewTEXT() TEXT {
-	ns := make(map[string]map[string]interface{})
-	return ns
+	return make(map[string]map[string]interface{})
+
 }
