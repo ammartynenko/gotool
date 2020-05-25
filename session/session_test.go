@@ -35,6 +35,10 @@ func TestSession_GetDATA(t *testing.T) {
 func TestSession_SetDATA(t *testing.T) {
 	tt := New()
 	tt.SetDATA("stock", "fn", 123)
+	tt.SetDATA("stock", "fn2", 12312)
+	tt.SetDATA("stock", "fn3", 111)
+	tt.SetDATA("stock2", "fn", 123)
+	t.Log(tt.DATA)
 	if v, err := tt.GetDATA("stock", "fn"); err != nil {
 		t.Error(err, "element before placed in stock.fnm but not found now")
 	} else {
