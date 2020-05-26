@@ -88,13 +88,7 @@ func (t *TEXT) fromJSON(v []byte) (TEXT, error) {
 
 //размещения данных в ~DATA~
 func (t *DATA) set(s, k string, v interface{}) {
-	if _, exists := (*t)[s]; exists {
-		if _, found := (*t)[s][k]; found {
-		} else {
-			(*t)[s] = make(map[string]interface{})
-		}
-	} else {
-		(*t) = make(map[string]map[string]interface{})
+	if _, exists := (*t)[s]; exists == false {
 		(*t)[s] = make(map[string]interface{})
 	}
 	(*t)[s][k] = v
