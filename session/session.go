@@ -35,16 +35,18 @@ type DATA map[string]map[string]interface{}
 
 //инстанс сессии
 type Session struct {
-	TEXT //interface -> для большей гибкости при передачи данных, т.к. json корректно кодирует некотоорые вложенные структуры данных
-	DATA //"бинарный" контейнер, используется только в рамках контекста, не сохраняется
-	log  *log.Logger
+	TEXT  //interface -> для большей гибкости при передачи данных, т.к. json корректно кодирует некотоорые вложенные структуры данных
+	DATA  //"бинарный" контейнер, используется только в рамках контекста, не сохраняется
+	FLASH //флэш
+	log   *log.Logger
 }
 
 func New() *Session {
 	return &Session{
-		TEXT: make(TEXT),
-		DATA: make(DATA),
-		log:  log.New(os.Stdout, logPREFIX, logBITMASK),
+		TEXT:  make(TEXT),
+		DATA:  make(DATA),
+		FLASH: newFlash(),
+		log:   log.New(os.Stdout, logPREFIX, logBITMASK),
 	}
 }
 
@@ -146,7 +148,24 @@ func (s *Session) NewTEXT() TEXT {
 	return make(map[string]map[string]interface{})
 
 }
+
 //обновление TEXT
 func (s *Session) UpdateTEXT(v TEXT) {
 	s.TEXT = v
+}
+
+//флэш
+type FLASH map[string][]interface{}
+
+func newFlash() FLASH {
+	return FLASH{}
+}
+func (f *FLASH) Get(key string) []interface{} {
+	return (*f)[key]
+}
+func (f *FLASH) Set(key string, v interface{}) {
+	(*f)[key] = append((*f)[key], v)
+}
+func (f *FLASH) Empty(key string) bool {
+	return len((*f)[key]) > 0
 }
