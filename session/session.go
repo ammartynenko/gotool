@@ -51,17 +51,17 @@ func New() *Session {
 }
 
 //размещения данных в ~ТЕКСТЕ~
-func (t *TEXT) set(s, k string, v interface{}) {
-	if _, exists := (*t)[s]; exists == false {
-		(*t)[s] = make(map[string]interface{})
+func (t TEXT) set(s, k string, v interface{}) {
+	if _, exists := t[s]; exists == false {
+		t[s] = make(map[string]interface{})
 	}
-	(*t)[s][k] = v
+	t[s][k] = v
 }
 
 //извлечение данных из ~ТЕКСТА~
-func (t *TEXT) get(s, k string) (interface{}, error) {
-	if _, exists := (*t)[s]; exists {
-		if r, found := (*t)[s][k]; found {
+func (t TEXT) get(s, k string) (interface{}, error) {
+	if _, exists := t[s]; exists {
+		if r, found := t[s][k]; found {
 			return r, nil
 		} else {
 			return nil, errorNOTFOUND
@@ -71,8 +71,8 @@ func (t *TEXT) get(s, k string) (interface{}, error) {
 }
 
 //конвертация TEXT  -> JSON = []byte
-func (t *TEXT) toJSON() ([]byte, error) {
-	if res, err := json.Marshal(t); err == nil {
+func (t TEXT) toJSON() ([]byte, error) {
+	if res, err := json.Marshal(&t); err == nil {
 		return res, nil
 	} else {
 		return nil, err
@@ -80,7 +80,7 @@ func (t *TEXT) toJSON() ([]byte, error) {
 }
 
 //конвертация  string(JSON) -> Session.text
-func (t *TEXT) fromJSON(v []byte) (TEXT, error) {
+func (t TEXT) fromJSON(v []byte) (TEXT, error) {
 	var ns = make(map[string]map[string]interface{})
 	if err := json.Unmarshal(v, &ns); err != nil {
 		return nil, err
@@ -89,17 +89,17 @@ func (t *TEXT) fromJSON(v []byte) (TEXT, error) {
 }
 
 //размещения данных в ~DATA~
-func (t *DATA) set(s, k string, v interface{}) {
-	if _, exists := (*t)[s]; exists == false {
-		(*t)[s] = make(map[string]interface{})
+func (t DATA) set(s, k string, v interface{}) {
+	if _, exists := t[s]; exists == false {
+		t[s] = make(map[string]interface{})
 	}
-	(*t)[s][k] = v
+	t[s][k] = v
 }
 
 //извлечение данных из ~DATA~
-func (t *DATA) get(s, k string) (interface{}, error) {
-	if _, exists := (*t)[s]; exists {
-		if r, found := (*t)[s][k]; found {
+func (t DATA) get(s, k string) (interface{}, error) {
+	if _, exists := t[s]; exists {
+		if r, found := t[s][k]; found {
 			return r, nil
 		} else {
 			return nil, errorNOTFOUND
@@ -155,17 +155,33 @@ func (s *Session) UpdateTEXT(v TEXT) {
 }
 
 //флэш
-type FLASH map[string][]interface{}
+type FLASH map[string][]FlashObj
+type FlashObj struct {
+	Msg     interface{}
+	BStatus FStatus
+}
+type FStatus int
+
+const (
+	Success FStatus = iota
+	Warning
+	Error
+)
 
 func newFlash() FLASH {
 	return FLASH{}
 }
-func (f *FLASH) Get(key string) []interface{} {
-	return (*f)[key]
+func (f FLASH) Get(key string) []FlashObj {
+	v := f[key]
+	delete(f, key)
+	return v
 }
-func (f *FLASH) Set(key string, v interface{}) {
-	(*f)[key] = append((*f)[key], v)
+func (f FLASH) Set(key string, msg interface{}, status FStatus) {
+	f[key] = append(f[key], FlashObj{
+		Msg:     key,
+		BStatus: status,
+	})
 }
-func (f *FLASH) Empty(key string) bool {
-	return len((*f)[key]) > 0
+func (f FLASH) Empty(key string) bool {
+	return len(f[key]) > 0
 }

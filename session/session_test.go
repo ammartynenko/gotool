@@ -114,8 +114,12 @@ func TestSession_UpdateTEXT(t *testing.T) {
 	tt.SetTEXT("stock", "simple", 123)
 	newText := tt.NewTEXT()
 	t.Log(tt.TEXT)
-	newText.set("newstock","newsimple", 456)
+	newText.set("newstock", "newsimple", 456)
 	tt.UpdateTEXT(newText)
 	t.Log(tt.TEXT)
 
+}
+func TestFLASH_Set(t *testing.T) {
+	ff := newFlash()
+	ff.Set()
 }
