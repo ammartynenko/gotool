@@ -119,7 +119,3 @@ func TestSession_UpdateTEXT(t *testing.T) {
 	t.Log(tt.TEXT)
 
 }
-func TestFLASH_Set(t *testing.T) {
-	ff := newFlash()
-	ff.Set()
-}

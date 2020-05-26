@@ -157,9 +157,10 @@ func (s *Session) UpdateTEXT(v TEXT) {
 //флэш
 type FLASH map[string][]FlashObj
 type FlashObj struct {
-	Msg     interface{}
-	BStatus FStatus
+	Msg    interface{}
+	Status FStatus
 }
+
 type FStatus int
 
 const (
