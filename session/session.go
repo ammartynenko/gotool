@@ -50,13 +50,7 @@ func New() *Session {
 
 //размещения данных в ~ТЕКСТЕ~
 func (t *TEXT) set(s, k string, v interface{}) {
-	if _, exists := (*t)[s]; exists {
-		if _, found := (*t)[s][k]; found {
-		} else {
-			(*t)[s] = make(map[string]interface{})
-		}
-	} else {
-		(*t) = make(map[string]map[string]interface{})
+	if _, exists := (*t)[s]; exists == false {
 		(*t)[s] = make(map[string]interface{})
 	}
 	(*t)[s][k] = v
