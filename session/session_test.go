@@ -117,5 +117,20 @@ func TestSession_UpdateTEXT(t *testing.T) {
 	newText.set("newstock", "newsimple", 456)
 	tt.UpdateTEXT(newText)
 	t.Log(tt.TEXT)
+}
+
+func TestFLASH_Get(t *testing.T) {
+	ff := newFlash()
+	ff.Set("user", "Simple test message", Success)
+	ff.Set("user", "Simple test message2", Warning)
+
+	ff.Set("Rty", "WDFDFGDFg", Success)
+
+	t.Log(ff)
+	for _, v :=  range ff.Get("user") {
+		t.Log(v)
+	}
+
+	t.Log(ff)
 
 }

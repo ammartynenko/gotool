@@ -179,10 +179,11 @@ func (f FLASH) Get(key string) []FlashObj {
 }
 func (f FLASH) Set(key string, msg interface{}, status FStatus) {
 	f[key] = append(f[key], FlashObj{
-		Msg:    key,
+		Msg:    msg,
 		Status: status,
 	})
 }
+
 func (f FLASH) Empty(key string) bool {
 	return len(f[key]) > 0
 }
