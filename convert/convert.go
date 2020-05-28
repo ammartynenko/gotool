@@ -143,6 +143,16 @@ func (m *Convert) Int64ToString(input_num int64) string {
 	return strconv.FormatInt(input_num, 10)
 
 }
+//конвертация строки в uint
+func (m *Convert) DirectStringToUint(v string) uint {
+	if res, err := strconv.ParseUint(v, 10, 32); err != nil {
+		m.logger.Println(err)
+		return 0
+	}  else {
+		return uint(res)
+	}
+}
+
 
 //конвертация строки в целочисленное 64 разрядное число
 func (m *Convert) DirectStringtoInt64(v string) int64 {
