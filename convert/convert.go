@@ -239,6 +239,49 @@ type StockTime struct {
 func (s StockTime) String() string {
 	return fmt.Sprintf("%s %s", s.Date, s.Time)
 }
+//конвертация из time.time в строкове значение для представления в форме
+//из базы данных(приложения) [time.Time] -> html (input.data, input.time) [string]
+func (ms *Convert) TimeToForm(v time.Time) StockTime {
+	y, m, d := v.Date()
+	var (
+		Less   = "0%d"
+		More   = "%d"
+		month  string
+		day    string
+		hour   string
+		minute string
+		st     StockTime
+	)
+	//data:month
+	if m < 10 {
+		month = fmt.Sprintf(Less, m)
+	} else {
+		month = fmt.Sprintf(More, m)
+	}
+
+	//data:day
+	if d < 10 {
+		day = fmt.Sprintf(Less, d)
+	} else {
+		day = fmt.Sprintf(More, d)
+	}
+	st.Date = fmt.Sprintf("%v-%v-%v", y, month, day)
+
+	//time
+	if v.Hour() < 10 {
+		hour = fmt.Sprintf(Less, v.Hour())
+	} else {
+		hour = fmt.Sprintf(More, v.Hour())
+	}
+	if v.Minute() < 10 {
+		minute = fmt.Sprintf(Less, v.Minute())
+	} else {
+		minute = fmt.Sprintf(More, v.Minute())
+	}
+	st.Time = strings.Join([]string{hour, minute}, ":")
+
+	return st
+}
 
 //конвертация из time.unix в строковое значение для представления в форме
 func (ms *Convert) UnixToForm(unixTime int64) StockTime {
@@ -253,7 +296,6 @@ func (ms *Convert) UnixToForm(unixTime int64) StockTime {
 		minute string
 		st     StockTime
 	)
-
 	//data:month
 	if m < 10 {
 		month = fmt.Sprintf(Less, m)
@@ -297,6 +339,7 @@ func (ms *Convert) FormToUnix(s StockTime, correctOffset time.Duration) (int64, 
 }
 
 //конвертация из формы строковых значений в тип времени
+// [string=input.data][string=input.time] -> time.Time ["2006-10-10 15:02"]
 func (ms *Convert) FormToTime(s StockTime, correctOffset time.Duration) (time.Time, error) {
 	nt, err := time.Parse(LAYOUT_DATETIME_LAYOUT, s.String())
 	if err != nil {
